@@ -3,6 +3,8 @@ package com.zhouqing.chatproject.realtimeindoorlocation.activity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 
 import com.zhouqing.chatproject.realtimeindoorlocation.R;
 import com.zhouqing.chatproject.realtimeindoorlocation.camera.CameraSource;
@@ -19,8 +21,10 @@ public class CameraActivity extends AppCompatActivity {
     private CameraSource cameraSource = null;
     private CameraSourcePreview preview;
     private GraphicOverlay graphicOverlay;
+    private TextRecognitionProcessor textRecognitionProcessor;
+    private Button btnControl;
 
-    private static String TAG = MainActivity.class.getSimpleName().toString().trim();
+    private static final String TAG = "CameraActivity";
 
     //endregion
 
@@ -40,8 +44,33 @@ public class CameraActivity extends AppCompatActivity {
             Log.d(TAG, "graphicOverlay is null");
         }
 
+        btnControl = findViewById(R.id.btn_control);
+        btnControl.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(btnControl.getText().equals("Start")){
+                    collectionStart();
+                }
+                else{
+                    collectionStop();
+                }
+            }
+        });
+    }
+
+    //控制按钮的两个方法
+    public void collectionStart(){
+        btnControl.setText("Stop");
         createCameraSource();
         startCameraSource();
+    }
+
+    public void collectionStop(){
+        btnControl.setText("Start");
+        preview.stop();
+        StringBuilder textDetectionInfoAll = textRecognitionProcessor.getTextDetectionInfoAll();
+        Log.d(TAG, "textDetectionInfoAll:"+textDetectionInfoAll);
+        this.finish();
     }
 
     @Override
@@ -73,7 +102,8 @@ public class CameraActivity extends AppCompatActivity {
             cameraSource.setFacing(CameraSource.CAMERA_FACING_BACK);
         }
 
-        cameraSource.setMachineLearningFrameProcessor(new TextRecognitionProcessor());
+        textRecognitionProcessor = new TextRecognitionProcessor();
+        cameraSource.setMachineLearningFrameProcessor(textRecognitionProcessor);
     }
 
     private void startCameraSource() {

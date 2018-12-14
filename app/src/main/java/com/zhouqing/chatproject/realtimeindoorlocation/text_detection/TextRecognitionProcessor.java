@@ -49,6 +49,9 @@ public class TextRecognitionProcessor {
 	// the model can handle.
 	private final AtomicBoolean shouldThrottle = new AtomicBoolean(false);
 
+	//文字识别结果
+	private StringBuilder textDetectionInfoAll = new StringBuilder();
+
 	public TextRecognitionProcessor() {
 		detector = FirebaseVision.getInstance().getOnDeviceTextRecognizer();
 	}
@@ -109,7 +112,9 @@ public class TextRecognitionProcessor {
 					//打印文本信息
 					FirebaseVisionText.Element text = elements.get(k);
 					RectF rect = new RectF(text.getBoundingBox());
-					Log.d(TAG, "text:"+text.getText()+"("+rect.left+","+rect.top+"),("+rect.right+","+rect.bottom+")");
+					String textDetectionInfo = System.currentTimeMillis()+" "+rect.left+" "+rect.top+" "+rect.right+" "+rect.bottom+" "+text.getText()+"\n";
+					Log.d(TAG, textDetectionInfo);
+					textDetectionInfoAll.append(textDetectionInfo);
 				}
 			}
 		}
@@ -144,6 +149,10 @@ public class TextRecognitionProcessor {
 	}
 
 	//endregion
+
+	public StringBuilder getTextDetectionInfoAll(){
+		return textDetectionInfoAll;
+	}
 
 
 }
