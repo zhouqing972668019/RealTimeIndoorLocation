@@ -1,5 +1,6 @@
 package com.zhouqing.chatproject.realtimeindoorlocation.activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -10,6 +11,7 @@ import com.zhouqing.chatproject.realtimeindoorlocation.R;
 import com.zhouqing.chatproject.realtimeindoorlocation.camera.CameraSource;
 import com.zhouqing.chatproject.realtimeindoorlocation.camera.CameraSourcePreview;
 import com.zhouqing.chatproject.realtimeindoorlocation.model.GraphicOverlay;
+import com.zhouqing.chatproject.realtimeindoorlocation.service.SensorRecordService;
 import com.zhouqing.chatproject.realtimeindoorlocation.text_detection.TextRecognitionProcessor;
 
 import java.io.IOException;
@@ -56,6 +58,9 @@ public class CameraActivity extends AppCompatActivity {
                 }
             }
         });
+
+        Intent serviceIntent = new Intent(CameraActivity.this,SensorRecordService.class);
+        startService(serviceIntent);
     }
 
     //控制按钮的两个方法
@@ -63,13 +68,17 @@ public class CameraActivity extends AppCompatActivity {
         btnControl.setText("Stop");
         createCameraSource();
         startCameraSource();
+        String timeString =System.currentTimeMillis()+"";
+        SensorRecordService.instance().startLogging(timeString);
     }
 
     public void collectionStop(){
         btnControl.setText("Start");
         preview.stop();
+        StringBuilder sensorInfoAll = SensorRecordService.instance().stopLoggingAndReturnSensorInfo();
         StringBuilder textDetectionInfoAll = textRecognitionProcessor.getTextDetectionInfoAll();
         Log.d(TAG, "textDetectionInfoAll:"+textDetectionInfoAll);
+        Log.d(TAG, "sensorInfoAll:"+sensorInfoAll);
         this.finish();
     }
 
