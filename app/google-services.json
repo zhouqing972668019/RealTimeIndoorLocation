@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "172385914737",
+    "firebase_url": "https://realtimeindoorlocation.firebaseio.com",
+    "project_id": "realtimeindoorlocation",
+    "storage_bucket": "realtimeindoorlocation.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:172385914737:android:96fb67fef169b4f9",
+        "android_client_info": {
+          "package_name": "com.zhouqing.chatproject.realtimeindoorlocation"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "172385914737-skk2ilsbvuh1prll3c12l2sfmsg4mvog.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAd8147bU15GIfwWosNkYjEsQO6U2eRR1w"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
