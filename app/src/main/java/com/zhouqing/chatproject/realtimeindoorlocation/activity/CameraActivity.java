@@ -7,14 +7,23 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
+import com.google.android.gms.common.images.Size;
 import com.zhouqing.chatproject.realtimeindoorlocation.R;
 import com.zhouqing.chatproject.realtimeindoorlocation.camera.CameraSource;
 import com.zhouqing.chatproject.realtimeindoorlocation.camera.CameraSourcePreview;
 import com.zhouqing.chatproject.realtimeindoorlocation.model.GraphicOverlay;
+import com.zhouqing.chatproject.realtimeindoorlocation.model.StandardLocationInfo;
+import com.zhouqing.chatproject.realtimeindoorlocation.model.TextDetectionAndPoi;
 import com.zhouqing.chatproject.realtimeindoorlocation.service.SensorRecordService;
 import com.zhouqing.chatproject.realtimeindoorlocation.text_detection.TextRecognitionProcessor;
+import com.zhouqing.chatproject.realtimeindoorlocation.util.Constant;
+import com.zhouqing.chatproject.realtimeindoorlocation.util.FileUtil;
+import com.zhouqing.chatproject.realtimeindoorlocation.util.LocationInfoUtil;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class CameraActivity extends AppCompatActivity {
 
@@ -75,10 +84,13 @@ public class CameraActivity extends AppCompatActivity {
     public void collectionStop(){
         btnControl.setText("Start");
         preview.stop();
-        StringBuilder sensorInfoAll = SensorRecordService.instance().stopLoggingAndReturnSensorInfo();
-        StringBuilder textDetectionInfoAll = textRecognitionProcessor.getTextDetectionInfoAll();
-        Log.d(TAG, "textDetectionInfoAll:"+textDetectionInfoAll);
-        Log.d(TAG, "sensorInfoAll:"+sensorInfoAll);
+        List<String> sensorInfoList = SensorRecordService.instance().stopLoggingAndReturnSensorInfo();
+        List<String> textDetectionInfoList = textRecognitionProcessor.getTextDetectionInfoAll();
+        FileUtil.writeStrToPath(sensorInfoList.toString().replace(",","\n"), Constant.COLLECTION_DATA_PATH);
+        FileUtil.writeStrToPath(textDetectionInfoList.toString().replace(",","\n"), Constant.COLLECTION_DATA_PATH);
+        indoorLocation(textDetectionInfoList,sensorInfoList);
+        //Log.d(TAG, "textDetectionInfoAll:"+textDetectionInfoAll.toString());
+        //Log.d(TAG, "sensorInfoAll:"+sensorInfoAll.toString());
         this.finish();
     }
 
@@ -131,5 +143,24 @@ public class CameraActivity extends AppCompatActivity {
                 cameraSource = null;
             }
         }
+    }
+
+    //-----------------------------------------------------------------------------------------
+    public void indoorLocation(List<String> textDetectionList, List<String> sensorInfoList){
+        //获取本地的平面图信息
+        Map<String, StandardLocationInfo> floorPlanMap = FileUtil.getPOILocation(CameraActivity.this);
+        System.out.println("floorPlanMap:" + floorPlanMap.toString());
+        //获取时间戳和方向角的对应关系
+        Map<String,Double> oriMap = new LinkedHashMap<>();
+        Map<String,Double> gyroOriMap = new LinkedHashMap<>();
+        Map<String,Double> magAccOriMap = new LinkedHashMap<>();
+        LocationInfoUtil.getOriInfo(oriMap,gyroOriMap,magAccOriMap,sensorInfoList);
+        System.out.println("oriMap:" + oriMap.toString());
+        //获取文字识别结果与真实poi的关系
+        Size previewSize = cameraSource.getPreviewSize();
+        System.out.println("previewSizeWidth:" + previewSize.getWidth()+"");
+        Map<String, TextDetectionAndPoi> textDetectionInfoMap = new LinkedHashMap<>();
+        LocationInfoUtil.getTextDetectionInfo(previewSize,floorPlanMap,textDetectionList,textDetectionInfoMap);
+        System.out.println("textDetectionInfoMap:"+textDetectionInfoMap.toString());
     }
 }

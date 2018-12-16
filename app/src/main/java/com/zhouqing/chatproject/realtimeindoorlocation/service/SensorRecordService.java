@@ -13,6 +13,7 @@ import android.util.Log;
 
 import com.zhouqing.chatproject.realtimeindoorlocation.model.ComparableSensorEvent;
 import com.zhouqing.chatproject.realtimeindoorlocation.util.Constant;
+import com.zhouqing.chatproject.realtimeindoorlocation.util.LocationInfoUtil;
 import com.zhouqing.chatproject.realtimeindoorlocation.util.SensorLoggingAsyncTask;
 
 import java.io.File;
@@ -332,13 +333,13 @@ public class SensorRecordService extends Service implements SensorEventListener 
     }
 
 
-    public StringBuilder stopLoggingAndReturnSensorInfo() {
+    public List<String> stopLoggingAndReturnSensorInfo() {
         isLogging = false;
         return constructSensorInfo();
     }
 
-    public StringBuilder constructSensorInfo() {
-        StringBuilder sensorInfoSb = new StringBuilder();
+    public List<String> constructSensorInfo() {
+        List<String> answerList = new ArrayList<>();
         Set<ComparableSensorEvent> sensorEventSet = new LinkedHashSet<ComparableSensorEvent>();
         sensorEventSet.addAll(sensorEventList);
         for (ComparableSensorEvent event : sensorEventSet) {
@@ -354,7 +355,7 @@ public class SensorRecordService extends Service implements SensorEventListener 
                     sb.append("gyro").append(" ");
                     break;
                 case Sensor.TYPE_ORIENTATION:
-                    sb.append("ori").append(" ");
+                    sb.append(LocationInfoUtil.ORI).append(" ");
                     break;
                 case Sensor.TYPE_GRAVITY:
                     sb.append("grav").append(" ");
@@ -375,10 +376,10 @@ public class SensorRecordService extends Service implements SensorEventListener 
                     sb.append("step").append(" ");
                     break;
                 case Constant.TYPE_GYRO_ORI:
-                    sb.append("gyro_ori").append(" ");
+                    sb.append(LocationInfoUtil.GYRO_ORI).append(" ");
                     break;
                 case Constant.TYPE_MAG_ACC_ORI:
-                    sb.append("mag_acc_ori").append(" ");
+                    sb.append(LocationInfoUtil.MAG_ACC_ORI).append(" ");
                     break;
 
             }
@@ -391,8 +392,8 @@ public class SensorRecordService extends Service implements SensorEventListener 
                 }
             }
             Log.d(TAG, "doInBackground:content->" + sb.toString());
-            sensorInfoSb.append(sb.append("\n"));
+            answerList.add(sb.toString());
         }
-        return sensorInfoSb;
+        return answerList;
     }
 }

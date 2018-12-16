@@ -33,9 +33,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         switch (v.getId()){
+            case R.id.btn_floor_plan_manual:
+                startActivity(new Intent(MainActivity.this,ManualSettingActivity.class));
+                break;
             case R.id.btn_collection_data:
-                Intent intent = new Intent(MainActivity.this,CameraActivity.class);
-                startActivity(intent);
+                startActivity(new Intent(MainActivity.this,CameraActivity.class));
                 break;
         }
     }

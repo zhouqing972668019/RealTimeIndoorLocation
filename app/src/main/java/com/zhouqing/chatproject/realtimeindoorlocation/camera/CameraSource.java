@@ -367,6 +367,9 @@ public class CameraSource {
    */
   private static SizePair selectSizePair(Camera camera, int desiredWidth, int desiredHeight) {
     List<SizePair> validPreviewSizes = generateValidPreviewSizeList(camera);
+//    for(SizePair sizePair: validPreviewSizes){
+//      System.out.println("sizePreviewSize:"+sizePair.previewSize().getWidth()+","+sizePair.previewSize().getHeight());
+//    }
 
     // The method for selecting the best size is to minimize the sum of the differences between
     // the desired values and the actual values for width and height.  This is certainly not the
@@ -709,6 +712,7 @@ public class CameraSource {
           synchronized (processorLock) {
             Log.d(TAG, "Process an image");
             frameProcessor.process(
+                System.currentTimeMillis(),
                 data,
                 new FrameMetadata.Builder()
                     .setWidth(previewSize.getWidth())

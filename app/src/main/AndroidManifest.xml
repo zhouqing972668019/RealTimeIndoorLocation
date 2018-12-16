@@ -28,6 +28,8 @@
         </activity>
         <activity android:name=".activity.CameraActivity">
         </activity>
+        <activity android:name=".activity.ManualSettingActivity">
+        </activity>
         <service
             android:name=".service.SensorRecordService"
             android:enabled="true"

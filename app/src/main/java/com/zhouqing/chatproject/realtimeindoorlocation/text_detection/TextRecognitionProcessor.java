@@ -31,6 +31,7 @@ import com.zhouqing.chatproject.realtimeindoorlocation.model.GraphicOverlay;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -50,7 +51,7 @@ public class TextRecognitionProcessor {
 	private final AtomicBoolean shouldThrottle = new AtomicBoolean(false);
 
 	//文字识别结果
-	private StringBuilder textDetectionInfoAll = new StringBuilder();
+	private List<String> textDetectionInfoAll = new ArrayList<>();
 
 	public TextRecognitionProcessor() {
 		detector = FirebaseVision.getInstance().getOnDeviceTextRecognizer();
@@ -70,7 +71,7 @@ public class TextRecognitionProcessor {
 	}
 
 
-	public void process(ByteBuffer data, FrameMetadata frameMetadata, GraphicOverlay graphicOverlay) throws FirebaseMLException {
+	public void process(long timeStamp,ByteBuffer data, FrameMetadata frameMetadata, GraphicOverlay graphicOverlay) throws FirebaseMLException {
 
 		if (shouldThrottle.get()) {
 			return;
@@ -83,7 +84,7 @@ public class TextRecognitionProcessor {
 						.setRotation(frameMetadata.getRotation())
 						.build();
 
-		detectInVisionImage(FirebaseVisionImage.fromByteBuffer(data, metadata), frameMetadata, graphicOverlay);
+		detectInVisionImage(timeStamp,FirebaseVisionImage.fromByteBuffer(data, metadata), frameMetadata, graphicOverlay);
 	}
 
 	//endregion
@@ -95,7 +96,7 @@ public class TextRecognitionProcessor {
 	}
 
 
-	protected void onSuccess(@NonNull FirebaseVisionText results, @NonNull FrameMetadata frameMetadata, @NonNull GraphicOverlay graphicOverlay) {
+	protected void onSuccess(long timeStamp,@NonNull FirebaseVisionText results, @NonNull FrameMetadata frameMetadata, @NonNull GraphicOverlay graphicOverlay) {
 
 		graphicOverlay.clear();
 
@@ -112,9 +113,9 @@ public class TextRecognitionProcessor {
 					//打印文本信息
 					FirebaseVisionText.Element text = elements.get(k);
 					RectF rect = new RectF(text.getBoundingBox());
-					String textDetectionInfo = System.currentTimeMillis()+" "+rect.left+" "+rect.top+" "+rect.right+" "+rect.bottom+" "+text.getText()+"\n";
+					String textDetectionInfo = timeStamp+" "+rect.left+" "+rect.top+" "+rect.right+" "+rect.bottom+" "+text.getText();
 					Log.d(TAG, textDetectionInfo);
-					textDetectionInfoAll.append(textDetectionInfo);
+					textDetectionInfoAll.add(textDetectionInfo);
 				}
 			}
 		}
@@ -124,7 +125,7 @@ public class TextRecognitionProcessor {
 		Log.w(TAG, "Text detection failed." + e);
 	}
 
-	private void detectInVisionImage( FirebaseVisionImage image, final FrameMetadata metadata, final GraphicOverlay graphicOverlay) {
+	private void detectInVisionImage(final long timeStamp, FirebaseVisionImage image, final FrameMetadata metadata, final GraphicOverlay graphicOverlay) {
 
 		detectInImage(image)
 				.addOnSuccessListener(
@@ -132,7 +133,7 @@ public class TextRecognitionProcessor {
 							@Override
 							public void onSuccess(FirebaseVisionText results) {
 								shouldThrottle.set(false);
-								TextRecognitionProcessor.this.onSuccess(results, metadata, graphicOverlay);
+								TextRecognitionProcessor.this.onSuccess(timeStamp, results, metadata, graphicOverlay);
 							}
 						})
 				.addOnFailureListener(
@@ -150,7 +151,7 @@ public class TextRecognitionProcessor {
 
 	//endregion
 
-	public StringBuilder getTextDetectionInfoAll(){
+	public List<String> getTextDetectionInfoAll(){
 		return textDetectionInfoAll;
 	}
 

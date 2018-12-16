@@ -1,5 +1,7 @@
 package com.zhouqing.chatproject.realtimeindoorlocation.util;
 
+import android.os.Environment;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -9,8 +11,16 @@ import java.util.regex.Pattern;
 
 public class Constant {
     //项目存储文件的路径
-//    public static String PROJECT_FILE_PATH
-//            = Environment.getExternalStorageDirectory() + "/AndroidCamera/";
+    public static String PROJECT_FILE_PATH
+            = Environment.getExternalStorageDirectory() + "/LocEye/";
+
+    //数据采集阶段文字识别结果与传感器信息结果存放路径
+    public static String COLLECTION_DATA_PATH
+            =PROJECT_FILE_PATH + "CollectionInfo/";
+
+    //处理结果的文件存储路径
+    public static String OUTPUT_FILE_PATH
+            =Environment.getExternalStorageDirectory()+"/OutputPath/";
 
     //传感器类型常量
     public static final int TYPE_GYRO_ORI = 10001;
