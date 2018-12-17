@@ -27,7 +27,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -473,10 +472,10 @@ public class FileUtil {
 	}
 
 	//将指定字符串写入文件
-	public static void writeStrToPath(String fileContent,String path)
+	public static void writeStrToPath(String prefix, String fileContent,String path)
 	{
 		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
-		String outputFileName=new Random().nextInt() + "_" +df.format(new Date())+".txt";// new Date()为获取当前系统时间
+		String outputFileName = prefix + "_" +df.format(new Date())+".txt";// new Date()为获取当前系统时间
 		if (!new File(path).exists()) {
 			new File(path).mkdirs();
 		}
@@ -490,22 +489,5 @@ public class FileUtil {
 		}
 
 	}
-	//将指定字符串写入文件
-	public static void writeStrToPath(String fileContent,String path,String fileName)
-	{
-		if (!new File(path).exists()) {
-			new File(path).mkdirs();
-		}
-		FileOutputStream fos= null;
-		try {
-			fos = new FileOutputStream(path+fileName);
-			fos.write(fileContent.getBytes());
-			fos.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-	}
-
 
 }

@@ -34,10 +34,28 @@ public class LocationInfoUtil {
         }
     }
 
+    //读取某个时间戳前后的传感器数据
+    public static double getOriByTimeStamp(Map<String,Double> oriMap,String timeStamp){
+        double angle = 0d;
+        for(String curTimeStamp:oriMap.keySet())
+        {
+            long findTime = Long.parseLong(timeStamp);
+            long curTime = Long.parseLong(curTimeStamp);
+            if(findTime <= curTime)
+            {
+                angle = (oriMap.get(curTimeStamp) + angle)/2.0;
+                break;
+            }
+            angle = oriMap.get(curTimeStamp);
+        }
+        return angle;
+    }
+
     //获取文字识别信息
-    public static void getTextDetectionInfo(Size previewSize, Map<String, StandardLocationInfo> floorPlanMap, List<String> textDetectionList, Map<String, TextDetectionAndPoi> textDetectionInfoMap){
-        int previewWidth = previewSize.getWidth();
-        int previewHeight = previewSize.getHeight();
+    public static void getTextDetectionInfo(Size previewSize, Map<String, StandardLocationInfo> floorPlanMap, List<String> textDetectionList, Map<String, TextDetectionAndPoi> textDetectionInfoMap, Map<String, Integer> POIDetectionNumMap){
+        //手机为竖屏拍摄 宽度小于高度
+        int previewWidth = previewSize.getHeight();
+        int previewHeight = previewSize.getWidth();
         boolean isFindPOI = false;
         String lastPOIName = null;
         String lastTimeStamp = null;
@@ -64,6 +82,8 @@ public class LocationInfoUtil {
                         lastPOIName = POIName;
                         lastTimeStamp = timeStamp;
                         textDetectionInfoMap.put(POIName,textDetectionAndPoi);
+                        //存入POI数量hash表中
+                        POIDetectionNumMap.put(POIName,1);
                     }
                     //连续识别时，识别到的POI与上一个相同
                     else if(isFindPOI && lastPOIName.equals(POIName)){
@@ -98,10 +118,12 @@ public class LocationInfoUtil {
                                     break;
                                 }
                             }
+                            POIDetectionNumMap.put(POIName,POIDetectionNumMap.get(POIName)+1);
                         }
                         //同一个POI名称出现一次
                         else{
                             textDetectionInfoMap.put(POIName,textDetectionAndPoi);
+                            POIDetectionNumMap.put(POIName,1);
                         }
                         isFindPOI = true;
                         lastPOIName = POIName;
@@ -142,10 +164,12 @@ public class LocationInfoUtil {
                                         break;
                                     }
                                 }
+                                POIDetectionNumMap.put(POIName,POIDetectionNumMap.get(POIName)+1);
                             }
                             //同一个POI名称出现一次
                             else{
                                 textDetectionInfoMap.put(POIName,textDetectionAndPoi);
+                                POIDetectionNumMap.put(POIName,1);
                             }
                             isFindPOI = true;
                             lastPOIName = POIName;
@@ -169,5 +193,43 @@ public class LocationInfoUtil {
         long last = Long.parseLong(lastTimeStamp);
         long current = Long.parseLong(timeStamp);
         return  current - last <= TIMESTAMP_THRESHOLD;
+    }
+
+    //判断map中是否有POI名称出现多于1次
+    public static boolean isPOINumMoreThanOne(Map<String, Integer> POIDetectionNumMap){
+        for(String POINum:POIDetectionNumMap.keySet()){
+            if(POIDetectionNumMap.get(POINum) > 1){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    //获取两两POI之间的夹角
+    public static void getAngleOfPOIs(Map<String, TextDetectionAndPoi> textDetectionInfoMap, List<Double> angleList){
+        List<Map.Entry<String,TextDetectionAndPoi>> calculateList = new ArrayList<>(textDetectionInfoMap.entrySet());
+        for(int i=1;i<calculateList.size();i++){
+            //angleInfoList.add(calculateList.get(i-1).getValue().angle+"-->"+calculateList.get(i).getValue().angle);
+            double angle = calculateList.get(i).getValue().ori_angle - calculateList.get(i-1).getValue().ori_angle;
+            if(angle<0){
+                angle += 360;
+            }
+            angleList.add(angle);
+        }
+    }
+
+    //获取已识别的角标信息
+    public static void getCoordinateList(Map<String, TextDetectionAndPoi> textDetectionInfoMap,
+                                         Map<String, StandardLocationInfo> floorPlanMap,
+                                         List<Double[]> coordinateList)
+    {
+        for (String POIName:textDetectionInfoMap.keySet()) {
+            Double[] coordinate = new Double[3];
+            coordinate[0] = floorPlanMap.get(POIName).getX();
+            coordinate[1] = floorPlanMap.get(POIName).getY();
+            coordinate[2] = textDetectionInfoMap.get(POIName).ori_angle;
+            coordinateList.add(coordinate);
+            System.out.println("coordinate：x=" + coordinate[0] + " y=" + coordinate[1]);
+        }
     }
 }

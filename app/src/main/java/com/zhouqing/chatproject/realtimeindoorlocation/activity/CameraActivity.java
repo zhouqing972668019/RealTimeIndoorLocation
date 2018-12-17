@@ -19,8 +19,10 @@ import com.zhouqing.chatproject.realtimeindoorlocation.text_detection.TextRecogn
 import com.zhouqing.chatproject.realtimeindoorlocation.util.Constant;
 import com.zhouqing.chatproject.realtimeindoorlocation.util.FileUtil;
 import com.zhouqing.chatproject.realtimeindoorlocation.util.LocationInfoUtil;
+import com.zhouqing.chatproject.realtimeindoorlocation.util.TextDetection;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -86,12 +88,11 @@ public class CameraActivity extends AppCompatActivity {
         preview.stop();
         List<String> sensorInfoList = SensorRecordService.instance().stopLoggingAndReturnSensorInfo();
         List<String> textDetectionInfoList = textRecognitionProcessor.getTextDetectionInfoAll();
-        FileUtil.writeStrToPath(sensorInfoList.toString().replace(",","\n"), Constant.COLLECTION_DATA_PATH);
-        FileUtil.writeStrToPath(textDetectionInfoList.toString().replace(",","\n"), Constant.COLLECTION_DATA_PATH);
+        FileUtil.writeStrToPath("sensor", sensorInfoList.toString().replace(",","\n"), Constant.COLLECTION_DATA_PATH);
+        FileUtil.writeStrToPath("textDetection", textDetectionInfoList.toString().replace(",","\n"), Constant.COLLECTION_DATA_PATH);
         indoorLocation(textDetectionInfoList,sensorInfoList);
         //Log.d(TAG, "textDetectionInfoAll:"+textDetectionInfoAll.toString());
         //Log.d(TAG, "sensorInfoAll:"+sensorInfoAll.toString());
-        this.finish();
     }
 
     @Override
@@ -160,7 +161,45 @@ public class CameraActivity extends AppCompatActivity {
         Size previewSize = cameraSource.getPreviewSize();
         System.out.println("previewSizeWidth:" + previewSize.getWidth()+"");
         Map<String, TextDetectionAndPoi> textDetectionInfoMap = new LinkedHashMap<>();
-        LocationInfoUtil.getTextDetectionInfo(previewSize,floorPlanMap,textDetectionList,textDetectionInfoMap);
+        Map<String, Integer> POIDetectionNumMap = new LinkedHashMap<>();
+        LocationInfoUtil.getTextDetectionInfo(previewSize,floorPlanMap,textDetectionList,textDetectionInfoMap, POIDetectionNumMap);
         System.out.println("textDetectionInfoMap:"+textDetectionInfoMap.toString());
+        System.out.println("POIDetectionNumMap:"+POIDetectionNumMap.toString());
+        //为每一个POI添加角度信息
+        for(String POIName:textDetectionInfoMap.keySet()){
+            TextDetectionAndPoi textDetectionAndPoi = textDetectionInfoMap.get(POIName);
+            textDetectionAndPoi.ori_angle = LocationInfoUtil.getOriByTimeStamp(oriMap ,textDetectionAndPoi.timeStamp);
+            textDetectionAndPoi.gyro_ori_angle = LocationInfoUtil.getOriByTimeStamp(gyroOriMap,textDetectionAndPoi.timeStamp);
+            textDetectionAndPoi.mag_acc_angle = LocationInfoUtil.getOriByTimeStamp(magAccOriMap,textDetectionAndPoi.timeStamp);
+        }
+        //判断有无重复的POI出现
+        if(!LocationInfoUtil.isPOINumMoreThanOne(POIDetectionNumMap)){//不额外处理 直接计算位置
+            if(textDetectionInfoMap.size() > 3){
+                List<Double> angleList = new ArrayList<>();
+                LocationInfoUtil.getAngleOfPOIs(textDetectionInfoMap,angleList);
+                List<Double[]> coordinateList = new ArrayList<>();// 获取已识别的角标位置信息
+                LocationInfoUtil.getCoordinateList(textDetectionInfoMap,floorPlanMap,coordinateList);
+                final List<Integer> direction = new ArrayList<>();
+                for (int j = 0; j < coordinateList.size(); j++) {
+                    direction.add(-1);
+                }
+                final Double[] answer = TextDetection.cal_corrdinate(angleList, coordinateList, direction);
+                Intent intent = getIntent();
+                intent.putExtra("answer_x",answer[0]);
+                intent.putExtra("answer_y",answer[1]);
+                intent.putExtra("isSuccess",true);
+                setResult(RESULT_OK, intent);
+            }
+            else{
+                Intent intent = getIntent();
+                intent.putExtra("isSuccess",false);
+                setResult(RESULT_OK, intent);
+            }
+        }
+        //某个POI出现了多次 需要特殊处理
+        else{
+
+        }
+        this.finish();
     }
 }
