@@ -206,15 +206,15 @@ public class LocationInfoUtil {
     }
 
     //获取两两POI之间的夹角
-    public static void getAngleOfPOIs(Map<String, TextDetectionAndPoi> textDetectionInfoMap, List<Double> angleList){
+    public static void getAngleOfPOIs(Map<String, TextDetectionAndPoi> textDetectionInfoMap, List<Double> angleList, List<String> POINameList){
         List<Map.Entry<String,TextDetectionAndPoi>> calculateList = new ArrayList<>(textDetectionInfoMap.entrySet());
         for(int i=1;i<calculateList.size();i++){
-            //angleInfoList.add(calculateList.get(i-1).getValue().angle+"-->"+calculateList.get(i).getValue().angle);
             double angle = calculateList.get(i).getValue().ori_angle - calculateList.get(i-1).getValue().ori_angle;
             if(angle<0){
                 angle += 360;
             }
             angleList.add(angle);
+            POINameList.add(calculateList.get(i-1).getKey()+"->"+calculateList.get(i).getKey());
         }
     }
 
@@ -230,6 +230,19 @@ public class LocationInfoUtil {
             coordinate[2] = textDetectionInfoMap.get(POIName).ori_angle;
             coordinateList.add(coordinate);
             System.out.println("coordinate：x=" + coordinate[0] + " y=" + coordinate[1]);
+        }
+    }
+
+    //获取定位结果 返回给上一个界面
+    public static void getLocationResult(StringBuilder showInfo, Double[] answer, Map<String, TextDetectionAndPoi> textDetectionInfoMap, List<String> POINameList, List<Double> angleList){
+        showInfo.append("location answer:(").append(answer[0]).append(",").append(answer[1]).append(")\n");
+        showInfo.append("Intermediate information:\n");
+        for(String POIName:textDetectionInfoMap.keySet()){
+            TextDetectionAndPoi textDetectionAndPoi = textDetectionInfoMap.get(POIName);
+            showInfo.append("POIName:"+POIName+",angel:"+textDetectionAndPoi.ori_angle+"\n");
+        }
+        for(int i=0;i<angleList.size();i++){
+            showInfo.append(POINameList.get(i)+":"+angleList.get(i)+"\n");
         }
     }
 }

@@ -50,15 +50,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (requestCode){
             case 1:
                 if(resultCode == RESULT_OK){
-                    boolean isSuccess = data.getBooleanExtra("isSuccess", false);
-                    if(!isSuccess){
-                        tvContent.setText("Lack of POIs to locate!");
-                    }
-                    else{
-                        double answer_x = data.getDoubleExtra("answer_x", 0d);
-                        double answer_y = data.getDoubleExtra("answer_y", 0d);
-                        tvContent.setText("answer:("+answer_x+","+answer_y+")");
-                    }
+                    String showInfo = data.getStringExtra("showInfo");
+                    tvContent.setText(showInfo);
                 }
                 break;
             default:

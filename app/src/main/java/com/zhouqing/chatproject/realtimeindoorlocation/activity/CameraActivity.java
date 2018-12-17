@@ -173,10 +173,12 @@ public class CameraActivity extends AppCompatActivity {
             textDetectionAndPoi.mag_acc_angle = LocationInfoUtil.getOriByTimeStamp(magAccOriMap,textDetectionAndPoi.timeStamp);
         }
         //判断有无重复的POI出现
+        String showInfo = "";
         if(!LocationInfoUtil.isPOINumMoreThanOne(POIDetectionNumMap)){//不额外处理 直接计算位置
             if(textDetectionInfoMap.size() > 3){
                 List<Double> angleList = new ArrayList<>();
-                LocationInfoUtil.getAngleOfPOIs(textDetectionInfoMap,angleList);
+                List<String> POINameList = new ArrayList<>();
+                LocationInfoUtil.getAngleOfPOIs(textDetectionInfoMap,angleList,POINameList);
                 List<Double[]> coordinateList = new ArrayList<>();// 获取已识别的角标位置信息
                 LocationInfoUtil.getCoordinateList(textDetectionInfoMap,floorPlanMap,coordinateList);
                 final List<Integer> direction = new ArrayList<>();
@@ -184,17 +186,18 @@ public class CameraActivity extends AppCompatActivity {
                     direction.add(-1);
                 }
                 final Double[] answer = TextDetection.cal_corrdinate(angleList, coordinateList, direction);
-                Intent intent = getIntent();
-                intent.putExtra("answer_x",answer[0]);
-                intent.putExtra("answer_y",answer[1]);
-                intent.putExtra("isSuccess",true);
-                setResult(RESULT_OK, intent);
+
+                StringBuilder showInfoSB = new StringBuilder();
+                LocationInfoUtil.getLocationResult(showInfoSB,answer,textDetectionInfoMap,
+                        POINameList,angleList);
+                showInfo = showInfoSB.toString();
             }
             else{
-                Intent intent = getIntent();
-                intent.putExtra("isSuccess",false);
-                setResult(RESULT_OK, intent);
+                showInfo = "Lack of POIs to locate!";
             }
+            Intent intent = getIntent();
+            intent.putExtra("showInfo",showInfo);
+            setResult(RESULT_OK, intent);
         }
         //某个POI出现了多次 需要特殊处理
         else{
