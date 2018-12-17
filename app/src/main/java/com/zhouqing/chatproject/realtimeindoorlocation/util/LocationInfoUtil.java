@@ -199,10 +199,10 @@ public class LocationInfoUtil {
     public static boolean isPOINumMoreThanOne(Map<String, Integer> POIDetectionNumMap){
         for(String POINum:POIDetectionNumMap.keySet()){
             if(POIDetectionNumMap.get(POINum) > 1){
-                return false;
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     //获取两两POI之间的夹角

@@ -23,6 +23,7 @@ import com.zhouqing.chatproject.realtimeindoorlocation.util.TextDetection;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -163,7 +164,6 @@ public class CameraActivity extends AppCompatActivity {
         Map<String, TextDetectionAndPoi> textDetectionInfoMap = new LinkedHashMap<>();
         Map<String, Integer> POIDetectionNumMap = new LinkedHashMap<>();
         LocationInfoUtil.getTextDetectionInfo(previewSize,floorPlanMap,textDetectionList,textDetectionInfoMap, POIDetectionNumMap);
-        System.out.println("textDetectionInfoMap:"+textDetectionInfoMap.toString());
         System.out.println("POIDetectionNumMap:"+POIDetectionNumMap.toString());
         //为每一个POI添加角度信息
         for(String POIName:textDetectionInfoMap.keySet()){
@@ -172,6 +172,7 @@ public class CameraActivity extends AppCompatActivity {
             textDetectionAndPoi.gyro_ori_angle = LocationInfoUtil.getOriByTimeStamp(gyroOriMap,textDetectionAndPoi.timeStamp);
             textDetectionAndPoi.mag_acc_angle = LocationInfoUtil.getOriByTimeStamp(magAccOriMap,textDetectionAndPoi.timeStamp);
         }
+        System.out.println("textDetectionInfoMap:"+textDetectionInfoMap.toString());
         //判断有无重复的POI出现
         String showInfo = "";
         if(!LocationInfoUtil.isPOINumMoreThanOne(POIDetectionNumMap)){//不额外处理 直接计算位置
@@ -186,7 +187,7 @@ public class CameraActivity extends AppCompatActivity {
                     direction.add(-1);
                 }
                 final Double[] answer = TextDetection.cal_corrdinate(angleList, coordinateList, direction);
-
+                System.out.println("answer:"+ Arrays.toString(answer));
                 StringBuilder showInfoSB = new StringBuilder();
                 LocationInfoUtil.getLocationResult(showInfoSB,answer,textDetectionInfoMap,
                         POINameList,angleList);
