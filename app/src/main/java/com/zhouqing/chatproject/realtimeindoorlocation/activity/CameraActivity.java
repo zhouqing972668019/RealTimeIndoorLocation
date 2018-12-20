@@ -1,11 +1,15 @@
 package com.zhouqing.chatproject.realtimeindoorlocation.activity;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.google.android.gms.common.images.Size;
 import com.zhouqing.chatproject.realtimeindoorlocation.R;
@@ -22,8 +26,11 @@ import com.zhouqing.chatproject.realtimeindoorlocation.util.LocationInfoUtil;
 import com.zhouqing.chatproject.realtimeindoorlocation.util.TextDetection;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,14 +45,43 @@ public class CameraActivity extends AppCompatActivity {
     private TextRecognitionProcessor textRecognitionProcessor;
     private Button btnControl;
 
+    public static String TIMESTAMP_PATH = null;
+
     private static final String TAG = "CameraActivity";
 
+    //接收服务传过来的数据并显示
+    private MyReceiver receiver=null;
+
+    private TextView tvMagAccOri;
+    private TextView tvGyroOri;
+    private TextView tvOri;
+
+    DecimalFormat d = new DecimalFormat("#.##");
+
     //endregion
+
+    public class MyReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Bundle bundle=intent.getExtras();
+            double angle = bundle.getDouble("angle");
+            double gyroAngle = bundle.getDouble("gyroAngle");
+            double accMagAngle = bundle.getDouble("accMagAngle");
+            //Log.d(TAG, "onReceive->angle:"+angle);
+            tvOri.setText(d.format(angle) + "");
+            tvGyroOri.setText(d.format(gyroAngle) + "");
+            tvMagAccOri.setText(d.format(accMagAngle) + "");
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
+
+        tvOri = findViewById(R.id.tv_ori);
+        tvGyroOri = findViewById(R.id.tv_gyro_ori);
+        tvMagAccOri = findViewById(R.id.tv_mag_acc_ori);
 
         //FirebaseApp.initializeApp(this);
 
@@ -73,6 +109,11 @@ public class CameraActivity extends AppCompatActivity {
 
         Intent serviceIntent = new Intent(CameraActivity.this,SensorRecordService.class);
         startService(serviceIntent);
+
+        receiver=new MyReceiver();
+        IntentFilter filter=new IntentFilter();
+        filter.addAction("com.zhouqing.chatproject.realtimeindoorlocation.service.SensorRecordService");
+        CameraActivity.this.registerReceiver(receiver,filter);
     }
 
     //控制按钮的两个方法
@@ -89,8 +130,10 @@ public class CameraActivity extends AppCompatActivity {
         preview.stop();
         List<String> sensorInfoList = SensorRecordService.instance().stopLoggingAndReturnSensorInfo();
         List<String> textDetectionInfoList = textRecognitionProcessor.getTextDetectionInfoAll();
-        FileUtil.writeStrToPath("sensor", sensorInfoList.toString().replace(",","\n"), Constant.COLLECTION_DATA_PATH);
-        FileUtil.writeStrToPath("textDetection", textDetectionInfoList.toString().replace(",","\n"), Constant.COLLECTION_DATA_PATH);
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+        TIMESTAMP_PATH = df.format(new Date())+"/";// new Date()为获取当前系统时间
+        FileUtil.writeStrToPath("sensor", sensorInfoList.toString().replace(",","\n"), Constant.COLLECTION_DATA_PATH + TIMESTAMP_PATH);
+        FileUtil.writeStrToPath("textDetection", textDetectionInfoList.toString().replace(",","\n"), Constant.COLLECTION_DATA_PATH + TIMESTAMP_PATH);
         indoorLocation(textDetectionInfoList,sensorInfoList);
         //Log.d(TAG, "textDetectionInfoAll:"+textDetectionInfoAll.toString());
         //Log.d(TAG, "sensorInfoAll:"+sensorInfoAll.toString());
@@ -151,20 +194,22 @@ public class CameraActivity extends AppCompatActivity {
     public void indoorLocation(List<String> textDetectionList, List<String> sensorInfoList){
         //获取本地的平面图信息
         Map<String, StandardLocationInfo> floorPlanMap = FileUtil.getPOILocation(CameraActivity.this);
-        System.out.println("floorPlanMap:" + floorPlanMap.toString());
+        //System.out.println("floorPlanMap:" + floorPlanMap.toString());
         //获取时间戳和方向角的对应关系
         Map<String,Double> oriMap = new LinkedHashMap<>();
         Map<String,Double> gyroOriMap = new LinkedHashMap<>();
         Map<String,Double> magAccOriMap = new LinkedHashMap<>();
         LocationInfoUtil.getOriInfo(oriMap,gyroOriMap,magAccOriMap,sensorInfoList);
         System.out.println("oriMap:" + oriMap.toString());
+        System.out.println("magAccOriMap:" + magAccOriMap);
+        System.out.println("gyroOriMap:" + gyroOriMap);
         //获取文字识别结果与真实poi的关系
         Size previewSize = cameraSource.getPreviewSize();
-        System.out.println("previewSizeWidth:" + previewSize.getWidth()+"");
+//        System.out.println("previewSizeWidth:" + previewSize.getWidth()+"");
         Map<String, TextDetectionAndPoi> textDetectionInfoMap = new LinkedHashMap<>();
         Map<String, Integer> POIDetectionNumMap = new LinkedHashMap<>();
         LocationInfoUtil.getTextDetectionInfo(previewSize,floorPlanMap,textDetectionList,textDetectionInfoMap, POIDetectionNumMap);
-        System.out.println("POIDetectionNumMap:"+POIDetectionNumMap.toString());
+//        System.out.println("POIDetectionNumMap:"+POIDetectionNumMap.toString());
         //为每一个POI添加角度信息
         for(String POIName:textDetectionInfoMap.keySet()){
             TextDetectionAndPoi textDetectionAndPoi = textDetectionInfoMap.get(POIName);
@@ -173,25 +218,47 @@ public class CameraActivity extends AppCompatActivity {
             textDetectionAndPoi.mag_acc_angle = LocationInfoUtil.getOriByTimeStamp(magAccOriMap,textDetectionAndPoi.timeStamp);
         }
         System.out.println("textDetectionInfoMap:"+textDetectionInfoMap.toString());
+
+        //将当前中间信息保存
+        StringBuilder resultSB = new StringBuilder();
+        LocationInfoUtil.getResultPrintContent(resultSB,textDetectionInfoMap,floorPlanMap);
+
         //判断有无重复的POI出现
         String showInfo = "";
         if(!LocationInfoUtil.isPOINumMoreThanOne(POIDetectionNumMap)){//不额外处理 直接计算位置
-            if(textDetectionInfoMap.size() > 3){
-                List<Double> angleList = new ArrayList<>();
+            if(textDetectionInfoMap.size() >= 3){
+                List<Double> angleList = new ArrayList<>();//方向传感器z轴读数
+                List<Double> gyroAngleList = new ArrayList<>();//校正的陀螺仪结果
+                List<Double> magAccAngleList = new ArrayList<>();//重力+磁场结果
                 List<String> POINameList = new ArrayList<>();
-                LocationInfoUtil.getAngleOfPOIs(textDetectionInfoMap,angleList,POINameList);
-                List<Double[]> coordinateList = new ArrayList<>();// 获取已识别的角标位置信息
-                LocationInfoUtil.getCoordinateList(textDetectionInfoMap,floorPlanMap,coordinateList);
+                LocationInfoUtil.getAngleOfPOIs(textDetectionInfoMap,angleList,POINameList,
+                        gyroAngleList,magAccAngleList);
+                List<Double[]> coordinateList = new ArrayList<>();// 获取已识别的角标位置信息--方向传感器
+                List<Double[]> gyro_coordinateList = new ArrayList<>();// 获取已识别的角标位置信息--陀螺仪
+                List<Double[]> mag_acc_coordinateList = new ArrayList<>();// 获取已识别的角标位置信息--加速度+磁场
+                LocationInfoUtil.getCoordinateList(textDetectionInfoMap,floorPlanMap,coordinateList,
+                        gyro_coordinateList, mag_acc_coordinateList);
+                System.out.println("angleList:"+angleList.toString());
+                System.out.println("gyroAngleList:"+gyroAngleList.toString());
+                System.out.println("magAccAngleList:"+magAccAngleList.toString());
                 final List<Integer> direction = new ArrayList<>();
                 for (int j = 0; j < coordinateList.size(); j++) {
                     direction.add(-1);
                 }
-                final Double[] answer = TextDetection.cal_corrdinate(angleList, coordinateList, direction);
+                Double[] answer = TextDetection.cal_corrdinate(angleList, coordinateList, direction);//方向传感器
+                Double[] gyro_answer = TextDetection.cal_corrdinate(gyroAngleList, gyro_coordinateList, direction);//陀螺仪
+                Double[] mag_acc_answer = TextDetection.cal_corrdinate(magAccAngleList, mag_acc_coordinateList, direction);//重力+磁场
                 System.out.println("answer:"+ Arrays.toString(answer));
+                System.out.println("gyro_answer:"+ Arrays.toString(answer));
+                System.out.println("mag_acc_answer:"+ Arrays.toString(answer));
                 StringBuilder showInfoSB = new StringBuilder();
                 LocationInfoUtil.getLocationResult(showInfoSB,answer,textDetectionInfoMap,
                         POINameList,angleList);
                 showInfo = showInfoSB.toString();
+                //保存定位结果信息 保存到文件
+                LocationInfoUtil.getResultPrintContentFinal(resultSB,answer,gyro_answer,mag_acc_answer,
+                        POINameList,angleList,gyroAngleList,magAccAngleList);
+                FileUtil.writeStrToPath("result", resultSB.toString(), Constant.COLLECTION_DATA_PATH + TIMESTAMP_PATH);
             }
             else{
                 showInfo = "Lack of POIs to locate!";

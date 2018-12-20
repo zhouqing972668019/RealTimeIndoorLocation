@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class SensorRecordService extends Service implements SensorEventListener {
 
@@ -28,7 +30,9 @@ public class SensorRecordService extends Service implements SensorEventListener 
     private SensorManager mSensorManager;
     boolean isLogging = false;
     private static List<ComparableSensorEvent> sensorEventList = new ArrayList<ComparableSensorEvent>();
-    String timeString;//传感器截止记录时间戳
+    //String timeString;//传感器截止记录时间戳
+
+    private float[] ori = new float[3];
 
     // angular speeds from gyro
     private float[] gyro = new float[3];
@@ -51,6 +55,10 @@ public class SensorRecordService extends Service implements SensorEventListener 
     private float timestamp;
     private boolean initState = true;
 
+    public static final int TIME_CONSTANT = 30;
+    public static final float FILTER_COEFFICIENT = 0.98f;
+    private Timer fuseTimer = new Timer();
+
 
     private int sensorSampleRate = SensorManager.SENSOR_DELAY_GAME;
 
@@ -66,8 +74,7 @@ public class SensorRecordService extends Service implements SensorEventListener 
     public void onCreate() {
         super.onCreate();
         instance = this;//初始化当前类实例
-        //初始化传感器管理器
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+
         gyroOrientation[0] = 0.0f;
         gyroOrientation[1] = 0.0f;
         gyroOrientation[2] = 0.0f;
@@ -82,22 +89,30 @@ public class SensorRecordService extends Service implements SensorEventListener 
         gyroMatrix[6] = 0.0f;
         gyroMatrix[7] = 0.0f;
         gyroMatrix[8] = 1.0f;
+
+        //初始化传感器管理器
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+
+        // wait for one second until gyroscope and magnetometer/accelerometer
+        // data is initialised then scedule the complementary filter task
+        fuseTimer.scheduleAtFixedRate(new calculateFusedOrientationTask(),
+                1000, TIME_CONSTANT);
     }
 
     public void startLogging(String timestr) {
         sensorEventList.clear();
-        timeString = timestr;
+        //timeString = timestr;
         isLogging = true;
     }
 
     public void stopLogging() {
         isLogging = false;
-        logToFile(timeString);
+        //logToFile(timeString);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        sensorSampleRate = SensorManager.SENSOR_DELAY_GAME;
+        sensorSampleRate = SensorManager.SENSOR_DELAY_FASTEST;
         // 为加速度传感器注册监听器
         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), sensorSampleRate);
         // 为方向传感器注册监听器
@@ -136,23 +151,31 @@ public class SensorRecordService extends Service implements SensorEventListener 
     public void onSensorChanged(SensorEvent sensorEvent) {
         if (isLogging) {
             //将变化的传感器值以及时间戳记录
-            long timeStamp = System.currentTimeMillis();
-            sensorEventList.add(new ComparableSensorEvent(sensorEvent.values, timeStamp, sensorEvent.sensor.getType()));
+            long currentTimeStamp = System.currentTimeMillis();
+            sensorEventList.add(new ComparableSensorEvent(sensorEvent.values, currentTimeStamp, sensorEvent.sensor.getType()));
             switch (sensorEvent.sensor.getType()) {
                 case Sensor.TYPE_ACCELEROMETER:
                     // copy new accelerometer data into accel array and calculate orientation
                     System.arraycopy(sensorEvent.values, 0, accel, 0, 3);
-                    calculateAccMagOrientation(timeStamp);
+                    calculateAccMagOrientation(currentTimeStamp);
+                    Log.d(TAG, "accMagorientation:"+accMagOrientation[0]*180/Math.PI+","+
+                            accMagOrientation[1]*180/Math.PI+accMagOrientation[2]*180/Math.PI);
                     break;
 
                 case Sensor.TYPE_GYROSCOPE:
                     // process gyro data
-                    gyroFunction(sensorEvent, timeStamp);
+                    gyroFunction(sensorEvent, currentTimeStamp);
+                    Log.d(TAG, "gyroOrientation:"+gyroOrientation[0]*180/Math.PI+","
+                            +gyroOrientation[1]*180/Math.PI+","+gyroOrientation[2]*180/Math.PI);
                     break;
 
                 case Sensor.TYPE_MAGNETIC_FIELD:
                     // copy new magnetometer data into magnet array
                     System.arraycopy(sensorEvent.values, 0, magnet, 0, 3);
+                    break;
+
+                case Sensor.TYPE_ORIENTATION:
+                    System.arraycopy(sensorEvent.values, 0, ori, 0, 3);
                     break;
             }
         }
@@ -320,6 +343,74 @@ public class SensorRecordService extends Service implements SensorEventListener 
     public void onAccuracyChanged(Sensor sensor, int i) {
     }
 
+    class calculateFusedOrientationTask extends TimerTask {
+        public void run() {
+            float oneMinusCoeff = 1.0f - FILTER_COEFFICIENT;
+
+            /*
+             * Fix for 179?<--> -179?transition problem:
+             * Check whether one of the two orientation angles (gyro or accMag) is negative while the other one is positive.
+             * If so, add 360?(2 * math.PI) to the negative value, perform the sensor fusion, and remove the 360?from the result
+             * if it is greater than 180? This stabilizes the output in positive-to-negative-transition cases.
+             */
+
+            // azimuth
+            if (gyroOrientation[0] < -0.5 * Math.PI && accMagOrientation[0] > 0.0) {
+                fusedOrientation[0] = (float) (FILTER_COEFFICIENT * (gyroOrientation[0] + 2.0 * Math.PI) + oneMinusCoeff * accMagOrientation[0]);
+                fusedOrientation[0] -= (fusedOrientation[0] > Math.PI) ? 2.0 * Math.PI : 0;
+            }
+            else if (accMagOrientation[0] < -0.5 * Math.PI && gyroOrientation[0] > 0.0) {
+                fusedOrientation[0] = (float) (FILTER_COEFFICIENT * gyroOrientation[0] + oneMinusCoeff * (accMagOrientation[0] + 2.0 * Math.PI));
+                fusedOrientation[0] -= (fusedOrientation[0] > Math.PI)? 2.0 * Math.PI : 0;
+            }
+            else {
+                fusedOrientation[0] = FILTER_COEFFICIENT * gyroOrientation[0] + oneMinusCoeff * accMagOrientation[0];
+            }
+
+            // pitch
+            if (gyroOrientation[1] < -0.5 * Math.PI && accMagOrientation[1] > 0.0) {
+                fusedOrientation[1] = (float) (FILTER_COEFFICIENT * (gyroOrientation[1] + 2.0 * Math.PI) + oneMinusCoeff * accMagOrientation[1]);
+                fusedOrientation[1] -= (fusedOrientation[1] > Math.PI) ? 2.0 * Math.PI : 0;
+            }
+            else if (accMagOrientation[1] < -0.5 * Math.PI && gyroOrientation[1] > 0.0) {
+                fusedOrientation[1] = (float) (FILTER_COEFFICIENT * gyroOrientation[1] + oneMinusCoeff * (accMagOrientation[1] + 2.0 * Math.PI));
+                fusedOrientation[1] -= (fusedOrientation[1] > Math.PI)? 2.0 * Math.PI : 0;
+            }
+            else {
+                fusedOrientation[1] = FILTER_COEFFICIENT * gyroOrientation[1] + oneMinusCoeff * accMagOrientation[1];
+            }
+
+            // roll
+            if (gyroOrientation[2] < -0.5 * Math.PI && accMagOrientation[2] > 0.0) {
+                fusedOrientation[2] = (float) (FILTER_COEFFICIENT * (gyroOrientation[2] + 2.0 * Math.PI) + oneMinusCoeff * accMagOrientation[2]);
+                fusedOrientation[2] -= (fusedOrientation[2] > Math.PI) ? 2.0 * Math.PI : 0;
+            }
+            else if (accMagOrientation[2] < -0.5 * Math.PI && gyroOrientation[2] > 0.0) {
+                fusedOrientation[2] = (float) (FILTER_COEFFICIENT * gyroOrientation[2] + oneMinusCoeff * (accMagOrientation[2] + 2.0 * Math.PI));
+                fusedOrientation[2] -= (fusedOrientation[2] > Math.PI)? 2.0 * Math.PI : 0;
+            }
+            else {
+                fusedOrientation[2] = FILTER_COEFFICIENT * gyroOrientation[2] + oneMinusCoeff * accMagOrientation[2];
+            }
+
+            // overwrite gyro matrix and orientation with fused orientation
+            // to comensate gyro drift
+            gyroMatrix = getRotationMatrixFromOrientation(fusedOrientation);
+            System.arraycopy(fusedOrientation, 0, gyroOrientation, 0, 3);
+
+//            Log.d(TAG, "fusedOrientation:"+fusedOrientation[0]*180/Math.PI + ","
+//                    +fusedOrientation[1]*180/Math.PI + fusedOrientation[2]*180/Math.PI);
+
+            //发送广播
+            Intent intent=new Intent();
+            intent.putExtra("angle", (double)ori[0]);
+            intent.putExtra("accMagAngle", accMagOrientation[0]*180/Math.PI);
+            intent.putExtra("gyroAngle", gyroOrientation[0]*180/Math.PI);
+            intent.setAction("com.zhouqing.chatproject.realtimeindoorlocation.service.SensorRecordService");
+            sendBroadcast(intent);
+        }
+    }
+
     //写文件
     public static void logToFile(String string) {
         Set<ComparableSensorEvent> eventSet = new LinkedHashSet<ComparableSensorEvent>();
@@ -391,9 +482,11 @@ public class SensorRecordService extends Service implements SensorEventListener 
                     sb.append(0).append(" ");
                 }
             }
-            Log.d(TAG, "doInBackground:content->" + sb.toString());
+            //Log.d(TAG, "doInBackground:content->" + sb.toString());
             answerList.add(sb.toString());
         }
         return answerList;
     }
+
+
 }

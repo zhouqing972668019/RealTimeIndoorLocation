@@ -472,10 +472,9 @@ public class FileUtil {
 	}
 
 	//将指定字符串写入文件
-	public static void writeStrToPath(String prefix, String fileContent,String path)
+	public static void writeStrToPath(String fileName, String fileContent,String path)
 	{
-		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
-		String outputFileName = prefix + "_" +df.format(new Date())+".txt";// new Date()为获取当前系统时间
+		String outputFileName = fileName + ".txt";
 		if (!new File(path).exists()) {
 			new File(path).mkdirs();
 		}
