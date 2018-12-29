@@ -36,6 +36,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         switch (v.getId()){
+            case R.id.btn_floor_plan_auto:
+                startActivity(new Intent(MainActivity.this,AutoSettingActivity.class));
+                break;
             case R.id.btn_floor_plan_manual:
                 startActivity(new Intent(MainActivity.this,ManualSettingActivity.class));
                 break;

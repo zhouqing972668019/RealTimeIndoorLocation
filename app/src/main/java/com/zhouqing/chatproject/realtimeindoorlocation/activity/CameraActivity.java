@@ -230,17 +230,21 @@ public class CameraActivity extends AppCompatActivity {
                 List<Double> angleList = new ArrayList<>();//方向传感器z轴读数
                 List<Double> gyroAngleList = new ArrayList<>();//校正的陀螺仪结果
                 List<Double> magAccAngleList = new ArrayList<>();//重力+磁场结果
+                List<Double> complexGyroAngleList = new ArrayList<>();//合成陀螺仪角度
                 List<String> POINameList = new ArrayList<>();
                 LocationInfoUtil.getAngleOfPOIs(textDetectionInfoMap,angleList,POINameList,
-                        gyroAngleList,magAccAngleList);
+                        gyroAngleList,magAccAngleList,complexGyroAngleList,sensorInfoList);
                 List<Double[]> coordinateList = new ArrayList<>();// 获取已识别的角标位置信息--方向传感器
                 List<Double[]> gyro_coordinateList = new ArrayList<>();// 获取已识别的角标位置信息--陀螺仪
                 List<Double[]> mag_acc_coordinateList = new ArrayList<>();// 获取已识别的角标位置信息--加速度+磁场
+                List<Double[]> complex_gyro_coordinateList = new ArrayList<>();// 获取已识别的角标位置信息--合成角速度
                 LocationInfoUtil.getCoordinateList(textDetectionInfoMap,floorPlanMap,coordinateList,
-                        gyro_coordinateList, mag_acc_coordinateList);
+                        gyro_coordinateList, mag_acc_coordinateList,
+                        complexGyroAngleList,complex_gyro_coordinateList);
                 System.out.println("angleList:"+angleList.toString());
                 System.out.println("gyroAngleList:"+gyroAngleList.toString());
                 System.out.println("magAccAngleList:"+magAccAngleList.toString());
+                System.out.println("complexGyroAngleList:"+complexGyroAngleList);
                 final List<Integer> direction = new ArrayList<>();
                 for (int j = 0; j < coordinateList.size(); j++) {
                     direction.add(-1);
@@ -248,16 +252,18 @@ public class CameraActivity extends AppCompatActivity {
                 Double[] answer = TextDetection.cal_corrdinate(angleList, coordinateList, direction);//方向传感器
                 Double[] gyro_answer = TextDetection.cal_corrdinate(gyroAngleList, gyro_coordinateList, direction);//陀螺仪
                 Double[] mag_acc_answer = TextDetection.cal_corrdinate(magAccAngleList, mag_acc_coordinateList, direction);//重力+磁场
+                Double[] complex_gyro_answer = TextDetection.cal_corrdinate(complexGyroAngleList,complex_gyro_coordinateList,direction);//陀螺仪合成
                 System.out.println("answer:"+ Arrays.toString(answer));
-                System.out.println("gyro_answer:"+ Arrays.toString(answer));
-                System.out.println("mag_acc_answer:"+ Arrays.toString(answer));
+                System.out.println("gyro_answer:"+ Arrays.toString(gyro_answer));
+                System.out.println("mag_acc_answer:"+ Arrays.toString(mag_acc_answer));
+                System.out.println("complex_gyro_answer:"+Arrays.toString(complex_gyro_answer));
                 StringBuilder showInfoSB = new StringBuilder();
                 LocationInfoUtil.getLocationResult(showInfoSB,answer,textDetectionInfoMap,
                         POINameList,angleList);
                 showInfo = showInfoSB.toString();
                 //保存定位结果信息 保存到文件
-                LocationInfoUtil.getResultPrintContentFinal(resultSB,answer,gyro_answer,mag_acc_answer,
-                        POINameList,angleList,gyroAngleList,magAccAngleList);
+                LocationInfoUtil.getResultPrintContentFinal(resultSB,answer,gyro_answer,mag_acc_answer,complex_gyro_answer,
+                        POINameList,angleList,gyroAngleList,magAccAngleList,complexGyroAngleList);
                 FileUtil.writeStrToPath("result", resultSB.toString(), Constant.COLLECTION_DATA_PATH + TIMESTAMP_PATH);
             }
             else{

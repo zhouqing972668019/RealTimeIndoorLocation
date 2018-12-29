@@ -26,6 +26,9 @@ public class Constant {
     public static final int TYPE_GYRO_ORI = 10001;
     public static final int TYPE_MAG_ACC_ORI = 10002;
 
+    public static final String[] SHOP_FILENAMES = {"SYS.txt","WDK_1F_SHOP_LOCATION_INFO.txt","WDK_2F_SHOP_LOCATION_INFO.txt"};
+    public static final String[] SHOP_NAMES = {"SYS","WDK FLOOR 1","WDK FLOOR 2"};
+
     /**
      * @brief 判断两个String字符串的相似程度（因为用户输入的字符可能和兴趣点的名字不能完全匹配）
      * 即计算两个字符串的距离

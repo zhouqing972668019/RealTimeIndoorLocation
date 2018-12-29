@@ -3,12 +3,11 @@
     package="com.zhouqing.chatproject.realtimeindoorlocation">
 
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
-
 
     <application
         android:allowBackup="true"
@@ -20,20 +19,23 @@
         <meta-data
             android:name="com.google.firebase.ml.vision.DEPENDENCIES"
             android:value="ocr" />
+
         <activity android:name=".activity.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activity.CameraActivity">
-        </activity>
-        <activity android:name=".activity.ManualSettingActivity">
-        </activity>
+        <activity android:name=".activity.CameraActivity"></activity>
+        <activity android:name=".activity.ManualSettingActivity"></activity>
+
         <service
             android:name=".service.SensorRecordService"
             android:enabled="true"
             android:exported="true" />
+
+        <activity android:name=".activity.AutoSettingActivity"></activity>
     </application>
 
 </manifest>

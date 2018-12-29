@@ -238,7 +238,7 @@ public class SensorRecordService extends Service implements SensorEventListener 
         for (int i = 0; i < values.length; i++) {
             values[i] = (float) (gyroOrientation[i] * 180 / Math.PI);
         }
-        ComparableSensorEvent comparableSensorEvent = new ComparableSensorEvent(gyroOrientation, currentTimestamp, Constant.TYPE_GYRO_ORI);
+        ComparableSensorEvent comparableSensorEvent = new ComparableSensorEvent(values, currentTimestamp, Constant.TYPE_GYRO_ORI);
         sensorEventList.add(comparableSensorEvent);
     }
 

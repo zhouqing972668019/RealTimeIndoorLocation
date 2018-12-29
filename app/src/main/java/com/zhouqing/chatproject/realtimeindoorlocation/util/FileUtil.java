@@ -18,6 +18,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
@@ -275,54 +276,6 @@ public class FileUtil {
 		return answer;
 	}
 
-	//通过陀螺仪数据计算某两个时间戳之间的3轴旋转角度
-	public static double getGyroChange(String path,String timeStampPre,String timeStampCur) throws Exception{
-		double answer = 0.0;
-		File file=new File(path);
-		//BufferedReader是可以按行读取文件
-		FileInputStream inputStream = new FileInputStream(file);
-		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-
-		List<Double> gyro_x = new ArrayList<>();
-		List<Double> gyro_y = new ArrayList<>();
-		List<Double> gyro_z = new ArrayList<>();
-		List<Long> timestampList = new ArrayList<>();
-		long timeStampPreL = Long.parseLong(timeStampPre);
-		long timeStampCurL = Long.parseLong(timeStampCur);
-
-		String str = null;
-		while((str = bufferedReader.readLine()) != null)
-		{
-			String[] elements=str.split(" ");
-			//相应传感器数据
-			if(elements[0].equals("gyro"))
-			{
-				long timeStampL = Long.parseLong(elements[1]);
-				if(timeStampL>=timeStampPreL && timeStampL<=timeStampCurL){
-					gyro_x.add(Double.parseDouble(elements[2]));
-					gyro_y.add(Double.parseDouble(elements[3]));
-					gyro_z.add(Double.parseDouble(elements[4]));
-					timestampList.add(timeStampL);
-				}
-			}
-		}
-		//设置初值
-//        for(int i=0;i<answer.length;i++){
-//            answer[i] = preOri[i];
-//        }
-		//通过保存的两个时间戳内的陀螺仪数据积分计算出角度
-		for(int i=0;i<timestampList.size()-1;i++){
-			Double timeInterval = (timestampList.get(i+1) - timestampList.get(i))/1000.0;
-
-			double gyro_Synthesis = Math.sqrt(gyro_x.get(i)*gyro_x.get(i) + gyro_y.get(i)*gyro_y.get(i) + gyro_z.get(i)*gyro_z.get(i));
-			answer += timeInterval * Math.toDegrees(gyro_Synthesis);
-		}
-		//close
-		inputStream.close();
-		bufferedReader.close();
-		return answer;
-	}
-
 	//删除某个文件夹下所有文件（包括子文件夹及文件）
 	public static boolean deleteDir(File dir)
 	{
@@ -488,5 +441,27 @@ public class FileUtil {
 		}
 
 	}
+
+	/**
+	 * 按行读取txt
+	 *
+	 * @param context
+	 * @param fileName
+	 * @return
+	 * @throws Exception
+	 */
+	public static List<String> readTextFromAssets(Context context,String fileName) throws Exception {
+		InputStream is = context.getAssets().open(fileName);
+		InputStreamReader reader = new InputStreamReader(is);
+		BufferedReader bufferedReader = new BufferedReader(reader);
+		List<String> answerList = new ArrayList<>();
+		String str;
+		while ((str = bufferedReader.readLine()) != null) {
+			answerList.add(str);
+		}
+		return answerList;
+	}
+
+
 
 }
