@@ -32,12 +32,13 @@ public class AutoSettingActivity extends AppCompatActivity {
         spShop = findViewById(R.id.sp_shop);
         ArrayAdapter<String> shopAdapter = new ArrayAdapter<>(this,android.R.layout.simple_spinner_dropdown_item,Constant.SHOP_NAMES);
         spShop.setAdapter(shopAdapter);
-        spShop.setSelection(-1);
+        spShop.setSelection(FileUtil.getSPInt(AutoSettingActivity.this,"shopSelection"));
         spShop.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 //toast("you selected:"+position);
                 loadFloorPlan(position);
+                FileUtil.saveSpInt(AutoSettingActivity.this,"shopSelection",position);
             }
 
             @Override

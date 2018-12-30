@@ -332,6 +332,7 @@ public class CameraSource {
     camera.addCallbackBuffer(createPreviewBuffer(previewSize));
     camera.addCallbackBuffer(createPreviewBuffer(previewSize));
 
+
     return camera;
   }
 

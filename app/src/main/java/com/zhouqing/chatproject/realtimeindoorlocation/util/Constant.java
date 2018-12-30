@@ -22,12 +22,20 @@ public class Constant {
     public static String OUTPUT_FILE_PATH
             =Environment.getExternalStorageDirectory()+"/OutputPath/";
 
+    //测试100张图片的识别率-数据集文件夹
+    public static String TEXT_DATASET
+            =Environment.getExternalStorageDirectory()+"/firebase_dataset/";
+
+    public static String SENSOR_FILE_NAME = "sensor";
+    public static String TEXT_DETECTION_FILE_NAME = "textDetection";
+
     //传感器类型常量
     public static final int TYPE_GYRO_ORI = 10001;
     public static final int TYPE_MAG_ACC_ORI = 10002;
 
-    public static final String[] SHOP_FILENAMES = {"SYS.txt","WDK_1F_SHOP_LOCATION_INFO.txt","WDK_2F_SHOP_LOCATION_INFO.txt"};
+    public static final String[] SHOP_FILENAMES = {"SYS_LOCATION_INFO.txt","WDK_1F_SHOP_LOCATION_INFO.txt","WDK_2F_SHOP_LOCATION_INFO.txt"};
     public static final String[] SHOP_NAMES = {"SYS","WDK FLOOR 1","WDK FLOOR 2"};
+    public static final String[] SHOP_SHAPES = {"SYS_SHAPE_INFO.txt","WDK_1F_SHOP_SHAPE_INFO.txt","WDK_2F_SHOP_SHAPE_INFO.txt"};
 
     /**
      * @brief 判断两个String字符串的相似程度（因为用户输入的字符可能和兴趣点的名字不能完全匹配）
@@ -88,5 +96,6 @@ public class Constant {
     public static double calculateDistance(double[][] result){
         return Math.sqrt((result[1][0]-result[0][0])*(result[1][0]-result[0][0])+(result[1][1]-result[0][1])*(result[1][1]-result[0][1]));
     }
+
 
 }

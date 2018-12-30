@@ -27,15 +27,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activity.CameraActivity"></activity>
-        <activity android:name=".activity.ManualSettingActivity"></activity>
+        <activity android:name=".activity.CameraActivity" />
+        <activity android:name=".activity.ManualSettingActivity" />
 
         <service
             android:name=".service.SensorRecordService"
             android:enabled="true"
             android:exported="true" />
-
-        <activity android:name=".activity.AutoSettingActivity"></activity>
+        <activity android:name=".activity.AutoSettingActivity" />
+        <activity android:name=".activity.TextRecActivity">
+        </activity>
     </application>
 
 </manifest>

@@ -359,6 +359,20 @@ public class FileUtil {
 		return data;
 	}
 
+	//写设置界面的选项到sharedPreferences
+	public static void saveSpInt(Context context, String name, Integer value){
+		SharedPreferences sp = context.getSharedPreferences(SPNAME, Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = sp.edit();
+		if(value != null)editor.putInt(name,value);
+		editor.commit();
+	}
+
+	//从sharedPreferences中读取设置界面选项
+	public static int getSPInt(Context context,String name){
+		SharedPreferences sp = context.getSharedPreferences(SPNAME, Context.MODE_PRIVATE);
+		return sp.getInt(name,0);
+	}
+
 	//判断文件是否存在
 	public static boolean fileIsExists(String strFile)
 	{
@@ -460,6 +474,52 @@ public class FileUtil {
 			answerList.add(str);
 		}
 		return answerList;
+	}
+
+
+	//读文件，构造采集的文字识别和传感器数据
+	public static void readFileToGetCollectionData(String filePath,List<String> sensorInfoList,List<String> textDetectionInfoList){
+		//读取传感器信息
+		try {
+			File file = new File(filePath + Constant.SENSOR_FILE_NAME + ".txt");
+			if (file.isFile() && file.exists()) {
+				InputStreamReader isr = new InputStreamReader(new FileInputStream(file),"utf-8");
+				BufferedReader br = new BufferedReader(isr);
+				String lineTxt = null;
+				while ((lineTxt = br.readLine()) != null) {  //
+					if (!"".equals(lineTxt)) {
+						sensorInfoList.add(lineTxt);
+					}
+				}
+				isr.close();
+				br.close();
+			}else {
+				System.out.println("file not exists.");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		//读取文字识别结果信息
+		try {
+			File file = new File(filePath + Constant.TEXT_DETECTION_FILE_NAME + ".txt");
+			if (file.isFile() && file.exists()) {
+				InputStreamReader isr = new InputStreamReader(new FileInputStream(file),"utf-8");
+				BufferedReader br = new BufferedReader(isr);
+				String lineTxt = null;
+				while ((lineTxt = br.readLine()) != null) {  //
+					if (!"".equals(lineTxt)) {
+						textDetectionInfoList.add(lineTxt);
+					}
+				}
+				isr.close();
+				br.close();
+			}else {
+				System.out.println("file not exists.");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 

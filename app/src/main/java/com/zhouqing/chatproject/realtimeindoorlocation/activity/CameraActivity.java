@@ -27,6 +27,7 @@ import com.zhouqing.chatproject.realtimeindoorlocation.util.TextDetection;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,6 +45,7 @@ public class CameraActivity extends AppCompatActivity {
     private GraphicOverlay graphicOverlay;
     private TextRecognitionProcessor textRecognitionProcessor;
     private Button btnControl;
+    private Button btnLocalization;
 
     public static String TIMESTAMP_PATH = null;
 
@@ -107,6 +109,14 @@ public class CameraActivity extends AppCompatActivity {
             }
         });
 
+        btnLocalization = findViewById(R.id.btn_localization);
+        btnLocalization.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                localization();
+            }
+        });
+
         Intent serviceIntent = new Intent(CameraActivity.this,SensorRecordService.class);
         startService(serviceIntent);
 
@@ -118,6 +128,7 @@ public class CameraActivity extends AppCompatActivity {
 
     //控制按钮的两个方法
     public void collectionStart(){
+        btnLocalization.setVisibility(View.GONE);
         btnControl.setText("Stop");
         createCameraSource();
         startCameraSource();
@@ -132,9 +143,11 @@ public class CameraActivity extends AppCompatActivity {
         List<String> textDetectionInfoList = textRecognitionProcessor.getTextDetectionInfoAll();
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
         TIMESTAMP_PATH = df.format(new Date())+"/";// new Date()为获取当前系统时间
-        FileUtil.writeStrToPath("sensor", sensorInfoList.toString().replace(",","\n"), Constant.COLLECTION_DATA_PATH + TIMESTAMP_PATH);
-        FileUtil.writeStrToPath("textDetection", textDetectionInfoList.toString().replace(",","\n"), Constant.COLLECTION_DATA_PATH + TIMESTAMP_PATH);
-        indoorLocation(textDetectionInfoList,sensorInfoList);
+        String sensorContent = LocationInfoUtil.getStrBySensorInfoList(sensorInfoList);
+        String textContent = LocationInfoUtil.getStrByTextDetectionInfoList(textDetectionInfoList);
+        FileUtil.writeStrToPath("sensor", sensorContent, Constant.COLLECTION_DATA_PATH + TIMESTAMP_PATH);
+        FileUtil.writeStrToPath("textDetection", textContent, Constant.COLLECTION_DATA_PATH + TIMESTAMP_PATH);
+        indoorLocation(textDetectionInfoList,sensorInfoList,0);
         //Log.d(TAG, "textDetectionInfoAll:"+textDetectionInfoAll.toString());
         //Log.d(TAG, "sensorInfoAll:"+sensorInfoAll.toString());
     }
@@ -190,8 +203,20 @@ public class CameraActivity extends AppCompatActivity {
         }
     }
 
+    //直接对上一次记录的中间文件定位（可能修改了室内平面图信息）
+    public void localization(){
+        List<String> sensorInfoList = new ArrayList<>();
+        List<String> textDetectionInfoList = new ArrayList<>();
+        try {
+            LocationInfoUtil.getRecentCollectionData(sensorInfoList,textDetectionInfoList);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        indoorLocation(textDetectionInfoList,sensorInfoList,-1);
+    }
+
     //-----------------------------------------------------------------------------------------
-    public void indoorLocation(List<String> textDetectionList, List<String> sensorInfoList){
+    public void indoorLocation(List<String> textDetectionList, List<String> sensorInfoList, int method){
         //获取本地的平面图信息
         Map<String, StandardLocationInfo> floorPlanMap = FileUtil.getPOILocation(CameraActivity.this);
         //System.out.println("floorPlanMap:" + floorPlanMap.toString());
@@ -204,11 +229,16 @@ public class CameraActivity extends AppCompatActivity {
         System.out.println("magAccOriMap:" + magAccOriMap);
         System.out.println("gyroOriMap:" + gyroOriMap);
         //获取文字识别结果与真实poi的关系
-        Size previewSize = cameraSource.getPreviewSize();
+        int previewWidth = FileUtil.getSPInt(CameraActivity.this,"previewWidth");
+        if(previewWidth == 0){
+            Size previewSize = cameraSource.getPreviewSize();
+            previewWidth = previewSize.getHeight();
+            FileUtil.saveSpInt(CameraActivity.this,"previewWidth",previewWidth);
+        }
 //        System.out.println("previewSizeWidth:" + previewSize.getWidth()+"");
         Map<String, TextDetectionAndPoi> textDetectionInfoMap = new LinkedHashMap<>();
         Map<String, Integer> POIDetectionNumMap = new LinkedHashMap<>();
-        LocationInfoUtil.getTextDetectionInfo(previewSize,floorPlanMap,textDetectionList,textDetectionInfoMap, POIDetectionNumMap);
+        LocationInfoUtil.getTextDetectionInfo(previewWidth,floorPlanMap,textDetectionList,textDetectionInfoMap, POIDetectionNumMap);
 //        System.out.println("POIDetectionNumMap:"+POIDetectionNumMap.toString());
         //为每一个POI添加角度信息
         for(String POIName:textDetectionInfoMap.keySet()){
@@ -264,7 +294,9 @@ public class CameraActivity extends AppCompatActivity {
                 //保存定位结果信息 保存到文件
                 LocationInfoUtil.getResultPrintContentFinal(resultSB,answer,gyro_answer,mag_acc_answer,complex_gyro_answer,
                         POINameList,angleList,gyroAngleList,magAccAngleList,complexGyroAngleList);
-                FileUtil.writeStrToPath("result", resultSB.toString(), Constant.COLLECTION_DATA_PATH + TIMESTAMP_PATH);
+                if(method!=-1){
+                    FileUtil.writeStrToPath("result", resultSB.toString(), Constant.COLLECTION_DATA_PATH + TIMESTAMP_PATH);
+                }
             }
             else{
                 showInfo = "Lack of POIs to locate!";

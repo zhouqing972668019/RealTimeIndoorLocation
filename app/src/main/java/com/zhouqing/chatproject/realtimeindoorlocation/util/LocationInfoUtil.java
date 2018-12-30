@@ -1,10 +1,12 @@
 package com.zhouqing.chatproject.realtimeindoorlocation.util;
 
-import com.google.android.gms.common.images.Size;
 import com.zhouqing.chatproject.realtimeindoorlocation.model.StandardLocationInfo;
 import com.zhouqing.chatproject.realtimeindoorlocation.model.TextDetectionAndPoi;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -89,10 +91,7 @@ public class LocationInfoUtil {
     }
 
     //获取文字识别信息
-    public static void getTextDetectionInfo(Size previewSize, Map<String, StandardLocationInfo> floorPlanMap, List<String> textDetectionList, Map<String, TextDetectionAndPoi> textDetectionInfoMap, Map<String, Integer> POIDetectionNumMap){
-        //手机为竖屏拍摄 宽度小于高度
-        int previewWidth = previewSize.getHeight();
-        int previewHeight = previewSize.getWidth();
+    public static void getTextDetectionInfo(int previewWidth, Map<String, StandardLocationInfo> floorPlanMap, List<String> textDetectionList, Map<String, TextDetectionAndPoi> textDetectionInfoMap, Map<String, Integer> POIDetectionNumMap){
         boolean isFindPOI = false;
         String lastPOIName = null;
         String lastTimeStamp = null;
@@ -365,5 +364,42 @@ public class LocationInfoUtil {
         resultSB.append("complex_gyro_answer:("+complex_gyro_answer[0]+","+complex_gyro_answer[1]+")"+"\n");
     }
 
+
+    //转换文字识别结果list到字符串
+    public static String getStrByTextDetectionInfoList(List<String> textDetectionInfoList){
+        StringBuilder sb = new StringBuilder();
+        for(String textDetection:textDetectionInfoList){
+            sb.append(textDetection).append("\n");
+        }
+        return sb.toString();
+    }
+
+    //转换传感器信息list到字符串
+    public static String getStrBySensorInfoList(List<String> sensorInfoList){
+        StringBuilder sb = new StringBuilder();
+        for(String sensorInfo:sensorInfoList){
+            sb.append(sensorInfo).append("\n");
+        }
+        return sb.toString();
+    }
+
+    //获取最新的采集数据
+    public static void getRecentCollectionData(List<String> sensorInfoList,List<String> textDetectionInfoList) throws ParseException {
+        List<String> folderList = FileUtil.getChildFolder(Constant.COLLECTION_DATA_PATH);
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+        String resultFolder = folderList.get(0);
+        Date resultDate = df.parse(resultFolder);
+        if(folderList.size() > 1){
+            for(int i=1;i<folderList.size();i++){
+                String folder = folderList.get(i);
+                Date date = df.parse(folder);
+                if(date.after(resultDate)){
+                    resultDate = date;
+                    resultFolder = folder;
+                }
+            }
+        }
+        FileUtil.readFileToGetCollectionData(Constant.COLLECTION_DATA_PATH + resultFolder + "/",sensorInfoList,textDetectionInfoList);
+    }
 
 }

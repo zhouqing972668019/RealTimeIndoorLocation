@@ -25,6 +25,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnFloorPlanAuto = findViewById(R.id.btn_floor_plan_auto);
         btnFloorPlanManual = findViewById(R.id.btn_floor_plan_manual);
         btnCollectionData = findViewById(R.id.btn_collection_data);
+        btnCollectionData = findViewById(R.id.btn_collection_data);
         btnShowResult = findViewById(R.id.btn_show_result);
         tvContent = findViewById(R.id.tv_content);
         btnFloorPlanManual.setOnClickListener(this);
@@ -60,4 +61,5 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             default:
         }
     }
+
 }
