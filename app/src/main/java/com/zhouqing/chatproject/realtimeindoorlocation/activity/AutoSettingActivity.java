@@ -14,9 +14,6 @@ import com.zhouqing.chatproject.realtimeindoorlocation.model.StandardLocationInf
 import com.zhouqing.chatproject.realtimeindoorlocation.util.Constant;
 import com.zhouqing.chatproject.realtimeindoorlocation.util.FileUtil;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class AutoSettingActivity extends AppCompatActivity {
@@ -37,7 +34,8 @@ public class AutoSettingActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 //toast("you selected:"+position);
-                loadFloorPlan(position);
+                FileUtil.loadFloorPlan(AutoSettingActivity.this,position);
+                showFloorPlanInfo();
                 FileUtil.saveSpInt(AutoSettingActivity.this,"shopSelection",position);
             }
 
@@ -58,42 +56,6 @@ public class AutoSettingActivity extends AppCompatActivity {
         }
         tvFloorPlanInfo.setText(text);
     }
-
-    public void loadFloorPlan(int position){
-        String fileName = Constant.SHOP_FILENAMES[position];
-        try {
-            List<String> fileContentList = FileUtil.readTextFromAssets(AutoSettingActivity.this,fileName);
-            Map<String,StandardLocationInfo> locationInfoHashMap = new HashMap<>();
-            for(String fileContent:fileContentList){
-                String[] elements = fileContent.split(",");
-                String POIName = elements[0];
-                List<Double> xList = new ArrayList<>();
-                List<Double> yList = new ArrayList<>();
-                for(int i=1;i<elements.length-1;i+=2){
-                    xList.add(Double.parseDouble(elements[i]));
-                    yList.add(Double.parseDouble(elements[i+1]));
-                }
-                double xValue = 0d;
-                for(Double x:xList){
-                    xValue += x;
-                }
-                xValue /= xList.size();
-                double yValue = 0d;
-                for(Double y:yList){
-                    yValue += y;
-                }
-                yValue /= yList.size();
-                StandardLocationInfo standardLocationInfo = new StandardLocationInfo(xValue,yValue);
-                locationInfoHashMap.put(POIName,standardLocationInfo);
-            }
-            FileUtil.saveLocationToFile(AutoSettingActivity.this,locationInfoHashMap);
-            showFloorPlanInfo();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-
 
     public void toast(String content){
         Toast.makeText(AutoSettingActivity.this,content,Toast.LENGTH_SHORT).show();

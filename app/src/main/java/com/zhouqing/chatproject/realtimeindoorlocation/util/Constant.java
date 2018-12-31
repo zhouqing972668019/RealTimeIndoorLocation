@@ -33,6 +33,11 @@ public class Constant {
     public static final int TYPE_GYRO_ORI = 10001;
     public static final int TYPE_MAG_ACC_ORI = 10002;
 
+    //高德地图坐标的小数点位数
+    public static final Double DECIMAL_FACTOR = 1000d;
+    //绘制平面图时平面图距离手机边框的距离
+    public static final int MARGIN = 20;
+
     public static final String[] SHOP_FILENAMES = {"SYS_LOCATION_INFO.txt","WDK_1F_SHOP_LOCATION_INFO.txt","WDK_2F_SHOP_LOCATION_INFO.txt"};
     public static final String[] SHOP_NAMES = {"SYS","WDK FLOOR 1","WDK FLOOR 2"};
     public static final String[] SHOP_SHAPES = {"SYS_SHAPE_INFO.txt","WDK_1F_SHOP_SHAPE_INFO.txt","WDK_2F_SHOP_SHAPE_INFO.txt"};

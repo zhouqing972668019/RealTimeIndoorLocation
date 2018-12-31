@@ -294,9 +294,12 @@ public class CameraActivity extends AppCompatActivity {
                 //保存定位结果信息 保存到文件
                 LocationInfoUtil.getResultPrintContentFinal(resultSB,answer,gyro_answer,mag_acc_answer,complex_gyro_answer,
                         POINameList,angleList,gyroAngleList,magAccAngleList,complexGyroAngleList);
-                if(method!=-1){
-                    FileUtil.writeStrToPath("result", resultSB.toString(), Constant.COLLECTION_DATA_PATH + TIMESTAMP_PATH);
+                if(method == -1){
+                    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+                    TIMESTAMP_PATH = df.format(new Date())+"/";// new Date()为获取当前系统时间
                 }
+                FileUtil.writeStrToPath("result", resultSB.toString(), Constant.COLLECTION_DATA_PATH + TIMESTAMP_PATH);
+                FileUtil.saveLocationResult(CameraActivity.this,answer,gyro_answer,mag_acc_answer,complex_gyro_answer);
             }
             else{
                 showInfo = "Lack of POIs to locate!";

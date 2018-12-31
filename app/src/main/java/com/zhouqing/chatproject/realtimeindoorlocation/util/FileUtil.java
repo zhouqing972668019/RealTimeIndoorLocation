@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.zhouqing.chatproject.realtimeindoorlocation.model.StandardLocationInfo;
+import com.zhouqing.chatproject.realtimeindoorlocation.view.CanvasView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -359,7 +360,7 @@ public class FileUtil {
 		return data;
 	}
 
-	//写设置界面的选项到sharedPreferences
+	//写int类型值到sharedPreferences
 	public static void saveSpInt(Context context, String name, Integer value){
 		SharedPreferences sp = context.getSharedPreferences(SPNAME, Context.MODE_PRIVATE);
 		SharedPreferences.Editor editor = sp.edit();
@@ -367,10 +368,24 @@ public class FileUtil {
 		editor.commit();
 	}
 
-	//从sharedPreferences中读取设置界面选项
+	//从sharedPreferences中读取int类型值
 	public static int getSPInt(Context context,String name){
 		SharedPreferences sp = context.getSharedPreferences(SPNAME, Context.MODE_PRIVATE);
 		return sp.getInt(name,0);
+	}
+
+	//写float类型值到sharedPreferences
+	public static void saveSpFloat(Context context, String name, Float value){
+		SharedPreferences sp = context.getSharedPreferences(SPNAME, Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = sp.edit();
+		if(value != null)editor.putFloat(name,value);
+		editor.commit();
+	}
+
+	//从sharedPreferences中读取float类型值
+	public static float getSPFloat(Context context,String name){
+		SharedPreferences sp = context.getSharedPreferences(SPNAME, Context.MODE_PRIVATE);
+		return sp.getFloat(name,0f);
 	}
 
 	//判断文件是否存在
@@ -457,6 +472,24 @@ public class FileUtil {
 	}
 
 	/**
+	 * 将定位结果写到sharedPreferences中
+	 * @param answer
+	 * @param gyro_answer
+	 * @param mag_acc_answer
+	 * @param complex_gyro_answer
+	 */
+	public static void saveLocationResult(Context context,Double[] answer,Double[] gyro_answer,Double[] mag_acc_answer,Double[] complex_gyro_answer){
+		saveSpFloat(context,"answerX",Float.parseFloat(String.valueOf(answer[0])));
+		saveSpFloat(context,"answerY",Float.parseFloat(String.valueOf(answer[1])));
+		saveSpFloat(context,"gyro_answerX",Float.parseFloat(String.valueOf(gyro_answer[0])));
+		saveSpFloat(context,"gyro_answerY",Float.parseFloat(String.valueOf(gyro_answer[1])));
+		saveSpFloat(context,"mag_acc_answerX",Float.parseFloat(String.valueOf(mag_acc_answer[0])));
+		saveSpFloat(context,"mag_acc_answerY",Float.parseFloat(String.valueOf(mag_acc_answer[1])));
+		saveSpFloat(context,"complex_gyro_answerX",Float.parseFloat(String.valueOf(complex_gyro_answer[0])));
+		saveSpFloat(context,"complex_gyro_answerY",Float.parseFloat(String.valueOf(complex_gyro_answer[1])));
+	}
+
+	/**
 	 * 按行读取txt
 	 *
 	 * @param context
@@ -474,6 +507,88 @@ public class FileUtil {
 			answerList.add(str);
 		}
 		return answerList;
+	}
+
+	/**
+	 * 加载平面图信息，门的位置为多个门位置的平均
+	 * @param context
+	 * @param position
+	 */
+	public static void loadFloorPlan(Context context, int position){
+		String fileName = Constant.SHOP_FILENAMES[position];
+		try {
+			List<String> fileContentList = readTextFromAssets(context,fileName);
+			Map<String,StandardLocationInfo> locationInfoHashMap = new HashMap<>();
+			for(String fileContent:fileContentList){
+				String[] elements = fileContent.split(",");
+				String POIName = elements[0];
+				List<Double> xList = new ArrayList<>();
+				List<Double> yList = new ArrayList<>();
+				for(int i=1;i<elements.length-1;i+=2){
+					xList.add(Double.parseDouble(elements[i]));
+					yList.add(Double.parseDouble(elements[i+1]));
+				}
+				double xValue = 0d;
+				for(Double x:xList){
+					xValue += x;
+				}
+				xValue /= xList.size();
+				double yValue = 0d;
+				for(Double y:yList){
+					yValue += y;
+				}
+				yValue /= yList.size();
+				StandardLocationInfo standardLocationInfo = new StandardLocationInfo(xValue,yValue);
+				locationInfoHashMap.put(POIName,standardLocationInfo);
+			}
+			FileUtil.saveLocationToFile(context,locationInfoHashMap);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 以map的形式加载平面图中商店的门信息以及形状信息
+	 * @param context
+	 * @param position
+	 * @param shopNameLocationMap
+	 * @param shopShapeMap
+	 */
+	public static void loadShopInfoAsList(Context context, int position, Map<String,List<CanvasView.Coordinate>> shopNameLocationMap, Map<String,List<CanvasView.Coordinate>> shopShapeMap){
+		String shopLocationFileName = Constant.SHOP_FILENAMES[position];
+		String shopShapeFileName = Constant.SHOP_SHAPES[position];
+		try {
+			List<String> shopLocationList = readTextFromAssets(context,shopLocationFileName);
+			List<String> shopShapeList = readTextFromAssets(context,shopShapeFileName);
+			//构造商店门位置信息
+			for(String shopLocation: shopLocationList){
+				String[] elements = shopLocation.split(",");
+				String shopName = elements[0];
+				List<CanvasView.Coordinate> coordinates = new ArrayList<>();
+				for(int i=1;i<elements.length-1;i+=2){
+					double x = Double.parseDouble(elements[i]);
+					double y = Double.parseDouble(elements[i+1]);
+					CanvasView.Coordinate coordinate = new CanvasView.Coordinate((float)(x * Constant.DECIMAL_FACTOR),(float)(y * Constant.DECIMAL_FACTOR));
+					coordinates.add(coordinate);
+				}
+				shopNameLocationMap.put(shopName,coordinates);
+			}
+			//构造商店形状信息
+			for(String shopShape: shopShapeList){
+				String[] elements = shopShape.split(",");
+				String shopName = elements[0];
+				List<CanvasView.Coordinate> coordinates = new ArrayList<>();
+				for(int i=1;i<elements.length-1;i+=2){
+					double x = Double.parseDouble(elements[i]);
+					double y = Double.parseDouble(elements[i+1]);
+					CanvasView.Coordinate coordinate = new CanvasView.Coordinate((int)(x * Constant.DECIMAL_FACTOR),(int)(y * Constant.DECIMAL_FACTOR));
+					coordinates.add(coordinate);
+				}
+				shopShapeMap.put(shopName,coordinates);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 

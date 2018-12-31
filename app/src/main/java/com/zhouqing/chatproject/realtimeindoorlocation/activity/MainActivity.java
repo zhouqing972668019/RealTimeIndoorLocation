@@ -46,6 +46,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.btn_collection_data:
                 startActivityForResult(new Intent(MainActivity.this,CameraActivity.class),1);
                 break;
+            case R.id.btn_show_result:
+                startActivity(new Intent(MainActivity.this,ShowResultActivity.class));
+                break;
         }
     }
 
