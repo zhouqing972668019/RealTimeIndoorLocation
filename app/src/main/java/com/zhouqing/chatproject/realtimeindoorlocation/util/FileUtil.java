@@ -6,8 +6,9 @@ import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.zhouqing.chatproject.realtimeindoorlocation.model.Coordinate;
 import com.zhouqing.chatproject.realtimeindoorlocation.model.StandardLocationInfo;
-import com.zhouqing.chatproject.realtimeindoorlocation.view.CanvasView;
+import com.zhouqing.chatproject.realtimeindoorlocation.model.TextDetectionAndPoi;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -388,6 +389,33 @@ public class FileUtil {
 		return sp.getFloat(name,0f);
 	}
 
+    /**
+     * 保存定位时用到的POI的名称
+     * @param context
+     * @param textDetectionInfoMap
+     */
+    public static void savePOINames(Context context, Map<String, TextDetectionAndPoi> textDetectionInfoMap){
+        SharedPreferences sp = context.getSharedPreferences(SPNAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+        StringBuilder sb = new StringBuilder();
+        for(String POIName: textDetectionInfoMap.keySet()){
+            sb.append(POIName).append(",");
+        }
+        String POINames = sb.toString();
+        editor.putString("POINames",POINames.substring(0,POINames.length()-1));
+        editor.commit();
+    }
+
+    public static List<String> getPOINames(Context context){
+        SharedPreferences sp = context.getSharedPreferences(SPNAME, Context.MODE_PRIVATE);
+        List<String> POINameList = new ArrayList<>();
+        String POINames = sp.getString("POINames","");
+        for(String POIName:POINames.split(",")){
+            POINameList.add(POIName);
+        }
+        return POINameList;
+    }
+
 	//判断文件是否存在
 	public static boolean fileIsExists(String strFile)
 	{
@@ -554,7 +582,7 @@ public class FileUtil {
 	 * @param shopNameLocationMap
 	 * @param shopShapeMap
 	 */
-	public static void loadShopInfoAsList(Context context, int position, Map<String,List<CanvasView.Coordinate>> shopNameLocationMap, Map<String,List<CanvasView.Coordinate>> shopShapeMap){
+	public static void loadShopInfoAsList(Context context, int position, Map<String,List<Coordinate>> shopNameLocationMap, Map<String,List<Coordinate>> shopShapeMap){
 		String shopLocationFileName = Constant.SHOP_FILENAMES[position];
 		String shopShapeFileName = Constant.SHOP_SHAPES[position];
 		try {
@@ -564,11 +592,11 @@ public class FileUtil {
 			for(String shopLocation: shopLocationList){
 				String[] elements = shopLocation.split(",");
 				String shopName = elements[0];
-				List<CanvasView.Coordinate> coordinates = new ArrayList<>();
+				List<Coordinate> coordinates = new ArrayList<>();
 				for(int i=1;i<elements.length-1;i+=2){
-					double x = Double.parseDouble(elements[i]);
-					double y = Double.parseDouble(elements[i+1]);
-					CanvasView.Coordinate coordinate = new CanvasView.Coordinate((float)(x * Constant.DECIMAL_FACTOR),(float)(y * Constant.DECIMAL_FACTOR));
+					float x = Float.parseFloat(elements[i]);
+					float y = Float.parseFloat(elements[i+1]);
+					Coordinate coordinate = new Coordinate(x * Constant.DECIMAL_FACTOR,y * Constant.DECIMAL_FACTOR);
 					coordinates.add(coordinate);
 				}
 				shopNameLocationMap.put(shopName,coordinates);
@@ -577,11 +605,11 @@ public class FileUtil {
 			for(String shopShape: shopShapeList){
 				String[] elements = shopShape.split(",");
 				String shopName = elements[0];
-				List<CanvasView.Coordinate> coordinates = new ArrayList<>();
+				List<Coordinate> coordinates = new ArrayList<>();
 				for(int i=1;i<elements.length-1;i+=2){
 					double x = Double.parseDouble(elements[i]);
 					double y = Double.parseDouble(elements[i+1]);
-					CanvasView.Coordinate coordinate = new CanvasView.Coordinate((int)(x * Constant.DECIMAL_FACTOR),(int)(y * Constant.DECIMAL_FACTOR));
+					Coordinate coordinate = new Coordinate((int)(x * Constant.DECIMAL_FACTOR),(int)(y * Constant.DECIMAL_FACTOR));
 					coordinates.add(coordinate);
 				}
 				shopShapeMap.put(shopName,coordinates);

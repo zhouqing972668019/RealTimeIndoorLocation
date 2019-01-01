@@ -34,7 +34,7 @@ public class Constant {
     public static final int TYPE_MAG_ACC_ORI = 10002;
 
     //高德地图坐标的小数点位数
-    public static final Double DECIMAL_FACTOR = 1000d;
+    public static final float DECIMAL_FACTOR = 1000f;
     //绘制平面图时平面图距离手机边框的距离
     public static final int MARGIN = 20;
 

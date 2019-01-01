@@ -290,7 +290,6 @@ public class CameraActivity extends AppCompatActivity {
                 StringBuilder showInfoSB = new StringBuilder();
                 LocationInfoUtil.getLocationResult(showInfoSB,answer,textDetectionInfoMap,
                         POINameList,angleList);
-                showInfo = showInfoSB.toString();
                 //保存定位结果信息 保存到文件
                 LocationInfoUtil.getResultPrintContentFinal(resultSB,answer,gyro_answer,mag_acc_answer,complex_gyro_answer,
                         POINameList,angleList,gyroAngleList,magAccAngleList,complexGyroAngleList);
@@ -300,6 +299,13 @@ public class CameraActivity extends AppCompatActivity {
                 }
                 FileUtil.writeStrToPath("result", resultSB.toString(), Constant.COLLECTION_DATA_PATH + TIMESTAMP_PATH);
                 FileUtil.saveLocationResult(CameraActivity.this,answer,gyro_answer,mag_acc_answer,complex_gyro_answer);
+                //通过本次定位结果确定x轴基准角
+                float startAngle = LocationInfoUtil.getStartAngle(textDetectionInfoMap,floorPlanMap,answer);
+                FileUtil.saveSpFloat(CameraActivity.this,"startAngle",startAngle);
+                //保存当前用于定位结果的POI名称
+                FileUtil.savePOINames(CameraActivity.this,textDetectionInfoMap);
+                showInfoSB.append("startAngle:").append(startAngle);
+                showInfo = showInfoSB.toString();
             }
             else{
                 showInfo = "Lack of POIs to locate!";

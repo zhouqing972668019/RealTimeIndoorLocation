@@ -36,8 +36,8 @@
             android:exported="true" />
 
         <activity android:name=".activity.AutoSettingActivity" />
-        <activity android:name=".activity.TextRecActivity"></activity>
-        <activity android:name=".activity.ShowResultActivity"></activity>
+        <activity android:name=".activity.TextRecActivity" />
+        <activity android:name=".activity.ShowResultActivity" />
     </application>
 
 </manifest>

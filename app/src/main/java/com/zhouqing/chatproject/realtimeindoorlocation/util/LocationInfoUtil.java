@@ -321,6 +321,21 @@ public class LocationInfoUtil {
         }
     }
 
+    /**
+     * 通过定位结果计算x轴正方向对应的基准角
+     * @param textDetectionInfoMap
+     * @param floorPlanMap
+     * @param answer
+     * @return
+     */
+    public static float getStartAngle(Map<String, TextDetectionAndPoi> textDetectionInfoMap,
+                                      Map<String, StandardLocationInfo> floorPlanMap,
+                                      Double[] answer){
+        double angle = AngleCalculationUtil.getStartAngleAll(textDetectionInfoMap,floorPlanMap,answer,true);
+        return (float)angle;
+    }
+
+
     //获取定位结果 返回给上一个界面
     public static void getLocationResult(StringBuilder showInfo, Double[] answer, Map<String, TextDetectionAndPoi> textDetectionInfoMap, List<String> POINameList, List<Double> angleList){
         showInfo.append("location answer:(").append(answer[0]).append(",").append(answer[1]).append(")\n");
