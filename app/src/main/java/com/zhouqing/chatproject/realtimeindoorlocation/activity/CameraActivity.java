@@ -297,7 +297,6 @@ public class CameraActivity extends AppCompatActivity {
                     SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
                     TIMESTAMP_PATH = df.format(new Date())+"/";// new Date()为获取当前系统时间
                 }
-                FileUtil.writeStrToPath("result", resultSB.toString(), Constant.COLLECTION_DATA_PATH + TIMESTAMP_PATH);
                 FileUtil.saveLocationResult(CameraActivity.this,answer,gyro_answer,mag_acc_answer,complex_gyro_answer);
                 //通过本次定位结果确定x轴基准角
                 float startAngle = LocationInfoUtil.getStartAngle(textDetectionInfoMap,floorPlanMap,answer);
@@ -305,6 +304,7 @@ public class CameraActivity extends AppCompatActivity {
                 //保存当前用于定位结果的POI名称
                 FileUtil.savePOINames(CameraActivity.this,textDetectionInfoMap);
                 showInfoSB.append("startAngle:").append(startAngle);
+                FileUtil.writeStrToPath("result", resultSB.toString(), Constant.COLLECTION_DATA_PATH + TIMESTAMP_PATH);
                 showInfo = showInfoSB.toString();
             }
             else{

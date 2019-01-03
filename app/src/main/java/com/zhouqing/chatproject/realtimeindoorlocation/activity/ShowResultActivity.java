@@ -44,9 +44,9 @@ public class ShowResultActivity extends AppCompatActivity {
         //setContentView(R.layout.activity_show_result);
 
         //存入定位结果与初始角度，用于测试
-        FileUtil.saveSpFloat(ShowResultActivity.this,"answerX",158.5f);
-        FileUtil.saveSpFloat(ShowResultActivity.this,"answerY",129.3f);
-        FileUtil.saveSpFloat(ShowResultActivity.this,"startAngle",185f);
+//        FileUtil.saveSpFloat(ShowResultActivity.this,"answerX",158.5f);
+//        FileUtil.saveSpFloat(ShowResultActivity.this,"answerY",129.3f);
+//        FileUtil.saveSpFloat(ShowResultActivity.this,"startAngle",185f);
 
         canvasView =new CanvasView(this);
         setContentView(canvasView);

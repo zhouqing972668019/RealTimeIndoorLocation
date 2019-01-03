@@ -33,6 +33,9 @@ public class TextRecActivity extends AppCompatActivity {
     private List<String> fileNameList;
     private String finalFileName;
 
+    private long startTime;
+    private long endTime;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,6 +66,7 @@ public class TextRecActivity extends AppCompatActivity {
         FirebaseVisionTextRecognizer recognizer = FirebaseVision.getInstance()
                 .getOnDeviceTextRecognizer();
         btnRecognize.setEnabled(false);
+        startTime = System.currentTimeMillis();
         recognizer.processImage(image)
                 .addOnSuccessListener(
                         new OnSuccessListener<FirebaseVisionText>() {
@@ -85,7 +89,7 @@ public class TextRecActivity extends AppCompatActivity {
 
     private void processTextRecognitionResult(FirebaseVisionText texts, final int index) {
         List<FirebaseVisionText.TextBlock> blocks = texts.getTextBlocks();
-        String line = fileNameList.get(index)+" ";
+        String line = fileNameList.get(index)+",";
         for (int i = 0; i < blocks.size(); i++) {
             List<FirebaseVisionText.Line> lines = blocks.get(i).getLines();
             for (int j = 0; j < lines.size(); j++) {
@@ -98,9 +102,11 @@ public class TextRecActivity extends AppCompatActivity {
                 }
             }
         }
+        line += ","+(System.currentTimeMillis() - startTime);
         resultSB.append(line).append("\n");
         System.out.println("index:"+index+",fileName:"+fileNameList.get(index)+",line:"+line);
         if(index != fileNameList.size() - 1){
+            startTime = System.currentTimeMillis();
             String fileName = fileNameList.get(index + 1);
             FileInputStream fis = null;
             try {
