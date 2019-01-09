@@ -123,8 +123,8 @@ public class ShowResultActivity extends AppCompatActivity {
             readShopInfo(locationMap,shapeMap);
             //获取定位结果相关信息
             Coordinate locAnswer = null;
-            float answerX = FileUtil.getSPFloat(ShowResultActivity.this,"answerX") * Constant.DECIMAL_FACTOR;
-            float answerY = FileUtil.getSPFloat(ShowResultActivity.this,"answerY") * Constant.DECIMAL_FACTOR;
+            float answerX = FileUtil.getSPFloat(ShowResultActivity.this,"answerX");
+            float answerY = FileUtil.getSPFloat(ShowResultActivity.this,"answerY");
             if(answerX != 0f || answerY != 0f){
                 locAnswer = new Coordinate(answerX,answerY);
             }

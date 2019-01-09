@@ -143,10 +143,20 @@ public class CameraActivity extends AppCompatActivity {
         List<String> textDetectionInfoList = textRecognitionProcessor.getTextDetectionInfoAll();
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
         TIMESTAMP_PATH = df.format(new Date())+"/";// new Date()为获取当前系统时间
-        String sensorContent = LocationInfoUtil.getStrBySensorInfoList(sensorInfoList);
-        String textContent = LocationInfoUtil.getStrByTextDetectionInfoList(textDetectionInfoList);
-        FileUtil.writeStrToPath("sensor", sensorContent, Constant.COLLECTION_DATA_PATH + TIMESTAMP_PATH);
-        FileUtil.writeStrToPath("textDetection", textContent, Constant.COLLECTION_DATA_PATH + TIMESTAMP_PATH);
+        final String sensorContent = LocationInfoUtil.getStrBySensorInfoList(sensorInfoList);
+        final String textContent = LocationInfoUtil.getStrByTextDetectionInfoList(textDetectionInfoList);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                FileUtil.writeStrToPath("sensor", sensorContent, Constant.COLLECTION_DATA_PATH + TIMESTAMP_PATH);
+            }
+        }).start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                FileUtil.writeStrToPath("textDetection", textContent, Constant.COLLECTION_DATA_PATH + TIMESTAMP_PATH);
+            }
+        }).start();
         indoorLocation(textDetectionInfoList,sensorInfoList,0);
         //Log.d(TAG, "textDetectionInfoAll:"+textDetectionInfoAll.toString());
         //Log.d(TAG, "sensorInfoAll:"+sensorInfoAll.toString());
@@ -172,6 +182,7 @@ public class CameraActivity extends AppCompatActivity {
         if (cameraSource != null) {
             cameraSource.release();
         }
+        CameraActivity.this.unregisterReceiver(receiver);
     }
 
     private void createCameraSource() {
@@ -250,7 +261,7 @@ public class CameraActivity extends AppCompatActivity {
         System.out.println("textDetectionInfoMap:"+textDetectionInfoMap.toString());
 
         //将当前中间信息保存
-        StringBuilder resultSB = new StringBuilder();
+        final StringBuilder resultSB = new StringBuilder();
         LocationInfoUtil.getResultPrintContent(resultSB,textDetectionInfoMap,floorPlanMap);
 
         //判断有无重复的POI出现
@@ -304,7 +315,13 @@ public class CameraActivity extends AppCompatActivity {
                 //保存当前用于定位结果的POI名称
                 FileUtil.savePOINames(CameraActivity.this,textDetectionInfoMap);
                 showInfoSB.append("startAngle:").append(startAngle);
-                FileUtil.writeStrToPath("result", resultSB.toString(), Constant.COLLECTION_DATA_PATH + TIMESTAMP_PATH);
+                resultSB.append("startAngle:").append(startAngle).append("\n");
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        FileUtil.writeStrToPath("result", resultSB.toString(), Constant.COLLECTION_DATA_PATH + TIMESTAMP_PATH);
+                    }
+                }).start();
                 showInfo = showInfoSB.toString();
             }
             else{

@@ -403,6 +403,7 @@ public class TextDetection {
     }
 
 
+
     public static void main(String[] args){
 
         ArrayList<Double[]> truecorrdinatelist = new ArrayList<>();

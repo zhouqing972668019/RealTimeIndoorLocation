@@ -596,7 +596,7 @@ public class FileUtil {
 				for(int i=1;i<elements.length-1;i+=2){
 					float x = Float.parseFloat(elements[i]);
 					float y = Float.parseFloat(elements[i+1]);
-					Coordinate coordinate = new Coordinate(x * Constant.DECIMAL_FACTOR,y * Constant.DECIMAL_FACTOR);
+					Coordinate coordinate = new Coordinate(x,y);
 					coordinates.add(coordinate);
 				}
 				shopNameLocationMap.put(shopName,coordinates);
@@ -607,9 +607,9 @@ public class FileUtil {
 				String shopName = elements[0];
 				List<Coordinate> coordinates = new ArrayList<>();
 				for(int i=1;i<elements.length-1;i+=2){
-					double x = Double.parseDouble(elements[i]);
-					double y = Double.parseDouble(elements[i+1]);
-					Coordinate coordinate = new Coordinate((int)(x * Constant.DECIMAL_FACTOR),(int)(y * Constant.DECIMAL_FACTOR));
+					float x = Float.parseFloat(elements[i]);
+					float y = Float.parseFloat(elements[i+1]);
+					Coordinate coordinate = new Coordinate(x,y);
 					coordinates.add(coordinate);
 				}
 				shopShapeMap.put(shopName,coordinates);
