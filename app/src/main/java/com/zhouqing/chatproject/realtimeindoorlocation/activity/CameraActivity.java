@@ -141,6 +141,8 @@ public class CameraActivity extends AppCompatActivity {
         preview.stop();
         List<String> sensorInfoList = SensorRecordService.instance().stopLoggingAndReturnSensorInfo();
         List<String> textDetectionInfoList = textRecognitionProcessor.getTextDetectionInfoAll();
+        //寻找文本识别区域
+        Constant.findAreaOfTextDetection(textDetectionInfoList);
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
         TIMESTAMP_PATH = df.format(new Date())+"/";// new Date()为获取当前系统时间
         final String sensorContent = LocationInfoUtil.getStrBySensorInfoList(sensorInfoList);
@@ -246,7 +248,7 @@ public class CameraActivity extends AppCompatActivity {
             previewWidth = previewSize.getHeight();
             FileUtil.saveSpInt(CameraActivity.this,"previewWidth",previewWidth);
         }
-//        System.out.println("previewSizeWidth:" + previewSize.getWidth()+"");
+        System.out.println("previewSizeWidth:" + previewWidth +"");
         Map<String, TextDetectionAndPoi> textDetectionInfoMap = new LinkedHashMap<>();
         Map<String, Integer> POIDetectionNumMap = new LinkedHashMap<>();
         LocationInfoUtil.getTextDetectionInfo(previewWidth,floorPlanMap,textDetectionList,textDetectionInfoMap, POIDetectionNumMap);
@@ -291,9 +293,21 @@ public class CameraActivity extends AppCompatActivity {
                     direction.add(-1);
                 }
                 Double[] answer = TextDetection.cal_corrdinate(angleList, coordinateList, direction);//方向传感器
+                if(answer == null){
+                    answer = new Double[]{0d,0d};
+                }
                 Double[] gyro_answer = TextDetection.cal_corrdinate(gyroAngleList, gyro_coordinateList, direction);//陀螺仪
+                if(gyro_answer == null){
+                    gyro_answer = new Double[]{0d,0d};
+                }
                 Double[] mag_acc_answer = TextDetection.cal_corrdinate(magAccAngleList, mag_acc_coordinateList, direction);//重力+磁场
+                if(mag_acc_answer == null){
+                    mag_acc_answer = new Double[]{0d,0d};
+                }
                 Double[] complex_gyro_answer = TextDetection.cal_corrdinate(complexGyroAngleList,complex_gyro_coordinateList,direction);//陀螺仪合成
+                if(complex_gyro_answer == null){
+                    complex_gyro_answer = new Double[]{0d,0d};
+                }
                 System.out.println("answer:"+ Arrays.toString(answer));
                 System.out.println("gyro_answer:"+ Arrays.toString(gyro_answer));
                 System.out.println("mag_acc_answer:"+ Arrays.toString(mag_acc_answer));
@@ -304,7 +318,7 @@ public class CameraActivity extends AppCompatActivity {
                 //保存定位结果信息 保存到文件
                 LocationInfoUtil.getResultPrintContentFinal(resultSB,answer,gyro_answer,mag_acc_answer,complex_gyro_answer,
                         POINameList,angleList,gyroAngleList,magAccAngleList,complexGyroAngleList);
-                if(method == -1){
+                if(method == 0){
                     SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
                     TIMESTAMP_PATH = df.format(new Date())+"/";// new Date()为获取当前系统时间
                 }
@@ -316,12 +330,14 @@ public class CameraActivity extends AppCompatActivity {
                 FileUtil.savePOINames(CameraActivity.this,textDetectionInfoMap);
                 showInfoSB.append("startAngle:").append(startAngle);
                 resultSB.append("startAngle:").append(startAngle).append("\n");
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        FileUtil.writeStrToPath("result", resultSB.toString(), Constant.COLLECTION_DATA_PATH + TIMESTAMP_PATH);
-                    }
-                }).start();
+                if(method == 0){
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            FileUtil.writeStrToPath("result", resultSB.toString(), Constant.COLLECTION_DATA_PATH + TIMESTAMP_PATH);
+                        }
+                    }).start();
+                }
                 showInfo = showInfoSB.toString();
             }
             else{

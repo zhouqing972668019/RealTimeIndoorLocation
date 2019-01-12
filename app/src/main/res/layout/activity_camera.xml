@@ -49,14 +49,14 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#ffffff"
+            android:textColor="#000000"
             android:textSize="15sp"
             android:text="ori: "/>
         <TextView
             android:id="@+id/tv_ori"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#ffffff"
+            android:textColor="#000000"
             android:textSize="15sp"
             />
     </LinearLayout>
@@ -73,14 +73,14 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#ffffff"
+            android:textColor="#000000"
             android:textSize="15sp"
             android:text="gyro: "/>
         <TextView
             android:id="@+id/tv_gyro_ori"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#ffffff"
+            android:textColor="#000000"
             android:textSize="15sp"
             />
     </LinearLayout>
@@ -97,14 +97,14 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#ffffff"
+            android:textColor="#000000"
             android:textSize="15sp"
             android:text="mag acc: "/>
         <TextView
             android:id="@+id/tv_mag_acc_ori"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#ffffff"
+            android:textColor="#000000"
             android:textSize="15sp"
             />
     </LinearLayout>

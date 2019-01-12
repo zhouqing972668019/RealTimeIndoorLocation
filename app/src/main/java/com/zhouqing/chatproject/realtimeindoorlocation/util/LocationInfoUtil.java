@@ -90,11 +90,136 @@ public class LocationInfoUtil {
         return angle;
     }
 
-    //获取文字识别信息
+    //获取文字识别信息--考虑同一名称POI出现多次的情况
+//    public static void getTextDetectionInfo(int previewWidth, Map<String, StandardLocationInfo> floorPlanMap, List<String> textDetectionList, Map<String, TextDetectionAndPoi> textDetectionInfoMap, Map<String, Integer> POIDetectionNumMap){
+//        boolean isFindPOI = false;
+//        String lastPOIName = null;
+//        String lastTimeStamp = null;
+//        for(String textDetection:textDetectionList){
+//            String[] elements = textDetection.split(" ");
+//            if(elements.length != 6){
+//                continue;
+//            }
+//            //判断当前文字识别信息是否与某个POI名称相同
+//            for(String POIName:floorPlanMap.keySet()){
+//                if(Constant.calculateStringDistance(POIName,elements[5])>SIMILARITY_THRESHOLD){
+//                    double left = Double.parseDouble(elements[1]);
+//                    double right = Double.parseDouble(elements[3]);
+//                    String timeStamp = elements[0];
+//                    double centerDis = calCenterDis(previewWidth, left, right);
+//                    //第一个识别到的POI
+//                    if(!isFindPOI && lastPOIName == null){
+//                        TextDetectionAndPoi textDetectionAndPoi = new TextDetectionAndPoi();
+//                        textDetectionAndPoi.timeStampList = new ArrayList<>();
+//                        textDetectionAndPoi.timeStampList.add(timeStamp);
+//                        textDetectionAndPoi.timeStamp = timeStamp;
+//                        textDetectionAndPoi.centerDis = centerDis;
+//                        isFindPOI = true;
+//                        lastPOIName = POIName;
+//                        lastTimeStamp = timeStamp;
+//                        textDetectionInfoMap.put(POIName,textDetectionAndPoi);
+//                        //存入POI数量hash表中
+//                        POIDetectionNumMap.put(POIName,1);
+//                    }
+//                    //连续识别时，识别到的POI与上一个相同
+//                    else if(isFindPOI && lastPOIName.equals(POIName)){
+//                        String realPOIName = POIName;
+//                        int i=0;
+//                        for(;;i++){
+//                            if(!textDetectionInfoMap.containsKey(POIName+i)){
+//                                break;
+//                            }
+//                            realPOIName = POIName+i;
+//                        }
+//                        TextDetectionAndPoi textDetectionAndPoi = textDetectionInfoMap.get(realPOIName);
+//                        textDetectionAndPoi.timeStampList.add(timeStamp);
+//                        if(centerDis < textDetectionAndPoi.centerDis){
+//                            textDetectionAndPoi.timeStamp = timeStamp;
+//                            textDetectionAndPoi.centerDis = centerDis;
+//                        }
+//                        lastTimeStamp = timeStamp;
+//                    }
+//                    //识别到的POI与上一个不同
+//                    else if(!lastPOIName.equals(POIName)){
+//                        //同一个POI名称出现多次
+//                        TextDetectionAndPoi textDetectionAndPoi = new TextDetectionAndPoi();
+//                        textDetectionAndPoi.timeStampList = new ArrayList<>();
+//                        textDetectionAndPoi.timeStampList.add(timeStamp);
+//                        textDetectionAndPoi.timeStamp = timeStamp;
+//                        textDetectionAndPoi.centerDis = centerDis;
+//                        if(textDetectionInfoMap.containsKey(POIName)){
+//                            for(int i=0;;i++){
+//                                if(!textDetectionInfoMap.containsKey(POIName+i)){
+//                                    textDetectionInfoMap.put(POIName+i,textDetectionAndPoi);
+//                                    break;
+//                                }
+//                            }
+//                            POIDetectionNumMap.put(POIName,POIDetectionNumMap.get(POIName)+1);
+//                        }
+//                        //同一个POI名称出现一次
+//                        else{
+//                            textDetectionInfoMap.put(POIName,textDetectionAndPoi);
+//                            POIDetectionNumMap.put(POIName,1);
+//                        }
+//                        isFindPOI = true;
+//                        lastPOIName = POIName;
+//                        lastTimeStamp = timeStamp;
+//                    }
+//                    //非连续识别时，识别到的POI与上一个相同
+//                    else{
+//                        //同一个POI
+//                        if(isSamePOI(lastTimeStamp,timeStamp)){
+//                            String realPOIName = POIName;
+//                            int i=0;
+//                            for(;;i++){
+//                                if(!textDetectionInfoMap.containsKey(POIName+i)){
+//                                    break;
+//                                }
+//                                realPOIName = POIName+i;
+//                            }
+//                            TextDetectionAndPoi textDetectionAndPoi = textDetectionInfoMap.get(realPOIName);
+//                            textDetectionAndPoi.timeStampList.add(timeStamp);
+//                            if(centerDis < textDetectionAndPoi.centerDis){
+//                                textDetectionAndPoi.timeStamp = timeStamp;
+//                                textDetectionAndPoi.centerDis = centerDis;
+//                            }
+//                            lastTimeStamp = timeStamp;
+//                        }
+//                        //非同一个POI
+//                        else{
+//                            //同一个POI名称出现多次
+//                            TextDetectionAndPoi textDetectionAndPoi = new TextDetectionAndPoi();
+//                            textDetectionAndPoi.timeStampList = new ArrayList<>();
+//                            textDetectionAndPoi.timeStampList.add(timeStamp);
+//                            textDetectionAndPoi.timeStamp = timeStamp;
+//                            textDetectionAndPoi.centerDis = centerDis;
+//                            if(textDetectionInfoMap.containsKey(POIName)){
+//                                for(int i=0;;i++){
+//                                    if(!textDetectionInfoMap.containsKey(POIName+i)){
+//                                        textDetectionInfoMap.put(POIName+i,textDetectionAndPoi);
+//                                        break;
+//                                    }
+//                                }
+//                                POIDetectionNumMap.put(POIName,POIDetectionNumMap.get(POIName)+1);
+//                            }
+//                            //同一个POI名称出现一次
+//                            else{
+//                                textDetectionInfoMap.put(POIName,textDetectionAndPoi);
+//                                POIDetectionNumMap.put(POIName,1);
+//                            }
+//                            isFindPOI = true;
+//                            lastPOIName = POIName;
+//                            lastTimeStamp = timeStamp;
+//                        }
+//                    }
+//                    break;
+//                }
+//            }
+//        }
+//    }
+
+    //获取文字识别信息--只考虑出现一次的情况
     public static void getTextDetectionInfo(int previewWidth, Map<String, StandardLocationInfo> floorPlanMap, List<String> textDetectionList, Map<String, TextDetectionAndPoi> textDetectionInfoMap, Map<String, Integer> POIDetectionNumMap){
-        boolean isFindPOI = false;
-        String lastPOIName = null;
-        String lastTimeStamp = null;
         for(String textDetection:textDetectionList){
             String[] elements = textDetection.split(" ");
             if(elements.length != 6){
@@ -102,117 +227,28 @@ public class LocationInfoUtil {
             }
             //判断当前文字识别信息是否与某个POI名称相同
             for(String POIName:floorPlanMap.keySet()){
-                if(Constant.calculateStringDistance(POIName,elements[5])>SIMILARITY_THRESHOLD){
+                if(Constant.calculateStringDistance(POIName,elements[5])>SIMILARITY_THRESHOLD) {
                     double left = Double.parseDouble(elements[1]);
                     double right = Double.parseDouble(elements[3]);
                     String timeStamp = elements[0];
                     double centerDis = calCenterDis(previewWidth, left, right);
-                    //第一个识别到的POI
-                    if(!isFindPOI && lastPOIName == null){
+                    if (!textDetectionInfoMap.containsKey(POIName)) {
                         TextDetectionAndPoi textDetectionAndPoi = new TextDetectionAndPoi();
                         textDetectionAndPoi.timeStampList = new ArrayList<>();
                         textDetectionAndPoi.timeStampList.add(timeStamp);
                         textDetectionAndPoi.timeStamp = timeStamp;
                         textDetectionAndPoi.centerDis = centerDis;
-                        isFindPOI = true;
-                        lastPOIName = POIName;
-                        lastTimeStamp = timeStamp;
-                        textDetectionInfoMap.put(POIName,textDetectionAndPoi);
+                        textDetectionInfoMap.put(POIName, textDetectionAndPoi);
                         //存入POI数量hash表中
-                        POIDetectionNumMap.put(POIName,1);
-                    }
-                    //连续识别时，识别到的POI与上一个相同
-                    else if(isFindPOI && lastPOIName.equals(POIName)){
-                        String realPOIName = POIName;
-                        int i=0;
-                        for(;;i++){
-                            if(!textDetectionInfoMap.containsKey(POIName+i)){
-                                break;
-                            }
-                            realPOIName = POIName+i;
-                        }
-                        TextDetectionAndPoi textDetectionAndPoi = textDetectionInfoMap.get(realPOIName);
+                        POIDetectionNumMap.put(POIName, 1);
+                    } else {
+                        TextDetectionAndPoi textDetectionAndPoi = textDetectionInfoMap.get(POIName);
                         textDetectionAndPoi.timeStampList.add(timeStamp);
-                        if(centerDis < textDetectionAndPoi.centerDis){
+                        if (centerDis < textDetectionAndPoi.centerDis) {
                             textDetectionAndPoi.timeStamp = timeStamp;
                             textDetectionAndPoi.centerDis = centerDis;
                         }
-                        lastTimeStamp = timeStamp;
                     }
-                    //识别到的POI与上一个不同
-                    else if(!lastPOIName.equals(POIName)){
-                        //同一个POI名称出现多次
-                        TextDetectionAndPoi textDetectionAndPoi = new TextDetectionAndPoi();
-                        textDetectionAndPoi.timeStampList = new ArrayList<>();
-                        textDetectionAndPoi.timeStampList.add(timeStamp);
-                        textDetectionAndPoi.timeStamp = timeStamp;
-                        textDetectionAndPoi.centerDis = centerDis;
-                        if(textDetectionInfoMap.containsKey(POIName)){
-                            for(int i=0;;i++){
-                                if(!textDetectionInfoMap.containsKey(POIName+i)){
-                                    textDetectionInfoMap.put(POIName+i,textDetectionAndPoi);
-                                    break;
-                                }
-                            }
-                            POIDetectionNumMap.put(POIName,POIDetectionNumMap.get(POIName)+1);
-                        }
-                        //同一个POI名称出现一次
-                        else{
-                            textDetectionInfoMap.put(POIName,textDetectionAndPoi);
-                            POIDetectionNumMap.put(POIName,1);
-                        }
-                        isFindPOI = true;
-                        lastPOIName = POIName;
-                        lastTimeStamp = timeStamp;
-                    }
-                    //非连续识别时，识别到的POI与上一个相同
-                    else{
-                        //同一个POI
-                        if(isSamePOI(lastTimeStamp,timeStamp)){
-                            String realPOIName = POIName;
-                            int i=0;
-                            for(;;i++){
-                                if(!textDetectionInfoMap.containsKey(POIName+i)){
-                                    break;
-                                }
-                                realPOIName = POIName+i;
-                            }
-                            TextDetectionAndPoi textDetectionAndPoi = textDetectionInfoMap.get(realPOIName);
-                            textDetectionAndPoi.timeStampList.add(timeStamp);
-                            if(centerDis < textDetectionAndPoi.centerDis){
-                                textDetectionAndPoi.timeStamp = timeStamp;
-                                textDetectionAndPoi.centerDis = centerDis;
-                            }
-                            lastTimeStamp = timeStamp;
-                        }
-                        //非同一个POI
-                        else{
-                            //同一个POI名称出现多次
-                            TextDetectionAndPoi textDetectionAndPoi = new TextDetectionAndPoi();
-                            textDetectionAndPoi.timeStampList = new ArrayList<>();
-                            textDetectionAndPoi.timeStampList.add(timeStamp);
-                            textDetectionAndPoi.timeStamp = timeStamp;
-                            textDetectionAndPoi.centerDis = centerDis;
-                            if(textDetectionInfoMap.containsKey(POIName)){
-                                for(int i=0;;i++){
-                                    if(!textDetectionInfoMap.containsKey(POIName+i)){
-                                        textDetectionInfoMap.put(POIName+i,textDetectionAndPoi);
-                                        break;
-                                    }
-                                }
-                                POIDetectionNumMap.put(POIName,POIDetectionNumMap.get(POIName)+1);
-                            }
-                            //同一个POI名称出现一次
-                            else{
-                                textDetectionInfoMap.put(POIName,textDetectionAndPoi);
-                                POIDetectionNumMap.put(POIName,1);
-                            }
-                            isFindPOI = true;
-                            lastPOIName = POIName;
-                            lastTimeStamp = timeStamp;
-                        }
-                    }
-                    break;
                 }
             }
         }

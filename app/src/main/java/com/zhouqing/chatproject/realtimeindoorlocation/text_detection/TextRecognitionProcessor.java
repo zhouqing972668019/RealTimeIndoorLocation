@@ -98,6 +98,7 @@ public class TextRecognitionProcessor {
 
 	protected void onSuccess(long timeStamp,@NonNull FirebaseVisionText results, @NonNull FrameMetadata frameMetadata, @NonNull GraphicOverlay graphicOverlay) {
 
+		System.out.println("frameData:"+frameMetadata.getWidth()+","+frameMetadata.getHeight()+","+frameMetadata.getRotation());
 		graphicOverlay.clear();
 
 		List<FirebaseVisionText.TextBlock> blocks = results.getTextBlocks();
@@ -107,12 +108,14 @@ public class TextRecognitionProcessor {
 			for (int j = 0; j < lines.size(); j++) {
 				List<FirebaseVisionText.Element> elements = lines.get(j).getElements();
 				for (int k = 0; k < elements.size(); k++) {
-					GraphicOverlay.Graphic textGraphic = new TextGraphic(graphicOverlay, elements.get(k));
-					graphicOverlay.add(textGraphic);
 
 					//打印文本信息
 					FirebaseVisionText.Element text = elements.get(k);
 					RectF rect = new RectF(text.getBoundingBox());
+
+					GraphicOverlay.Graphic textGraphic = new TextGraphic(graphicOverlay, elements.get(k));
+					graphicOverlay.add(textGraphic);
+
 					String textDetectionInfo = timeStamp+" "+rect.left+" "+rect.top+" "+rect.right+" "+rect.bottom+" "+text.getText();
 					Log.d(TAG, textDetectionInfo);
 					textDetectionInfoAll.add(textDetectionInfo);

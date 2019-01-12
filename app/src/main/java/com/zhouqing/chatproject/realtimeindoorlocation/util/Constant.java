@@ -2,6 +2,7 @@ package com.zhouqing.chatproject.realtimeindoorlocation.util;
 
 import android.os.Environment;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -100,6 +101,36 @@ public class Constant {
 
     public static double calculateDistance(double[][] result){
         return Math.sqrt((result[1][0]-result[0][0])*(result[1][0]-result[0][0])+(result[1][1]-result[0][1])*(result[1][1]-result[0][1]));
+    }
+
+    /**
+     * 验证实验 寻找文本识别区域
+     */
+    public static void findAreaOfTextDetection(List<String> textDetectionInfoList){
+        double areaLeft = Double.MAX_VALUE;
+        double areaRight = Double.MIN_VALUE;
+        double areaTop = Double.MAX_VALUE;
+        double areaBottom = Double.MIN_VALUE;
+        for(String textDetectionInfo:textDetectionInfoList){
+            String[] elements = textDetectionInfo.split(" ");
+            double left = Double.parseDouble(elements[1]);
+            double top = Double.parseDouble(elements[2]);
+            double right = Double.parseDouble(elements[3]);
+            double bottom = Double.parseDouble(elements[4]);
+            if(left < areaLeft){
+                areaLeft = left;
+            }
+            if(right > areaRight){
+                areaRight = right;
+            }
+            if(top < areaTop){
+                areaTop = top;
+            }
+            if(bottom > areaBottom){
+                areaBottom = bottom;
+            }
+        }
+        System.out.println("textDetectionArea:"+areaLeft+","+areaTop+","+areaRight+","+areaBottom);
     }
 
 

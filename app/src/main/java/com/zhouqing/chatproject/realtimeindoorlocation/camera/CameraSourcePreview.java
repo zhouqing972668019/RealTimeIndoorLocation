@@ -156,15 +156,15 @@ public class CameraSourcePreview extends ViewGroup {
 	  // it is usually necessary to slightly oversize the child and to crop off portions along one
 	  // of the dimensions.  We scale up based on the dimension requiring the most correction, and
 	  // compute a crop offset for the other dimension.
-	  if (widthRatio > heightRatio) {
+	  //if (widthRatio > heightRatio) {
 		  childWidth = layoutWidth;
 		  childHeight = (int) ((float) height * widthRatio);
 		  childYOffset = (childHeight - layoutHeight) / 2;
-	  } else {
-		  childWidth = (int) ((float) width * heightRatio);
-		  childHeight = layoutHeight;
-		  childXOffset = (childWidth - layoutWidth) / 2;
-	  }
+//	  } else {
+//		  childWidth = (int) ((float) width * heightRatio);
+//		  childHeight = layoutHeight;
+//		  childXOffset = (childWidth - layoutWidth) / 2;
+//	  }
 
 	  for (int i = 0; i < getChildCount(); ++i) {
 		  // One dimension will be cropped.  We shift child over or up by this offset and adjust
