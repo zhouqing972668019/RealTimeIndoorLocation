@@ -108,6 +108,30 @@
             android:textSize="15sp"
             />
     </LinearLayout>
+    <LinearLayout
+        android:id="@+id/ll_folder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:orientation="vertical">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="select folder"
+            android:textSize="20sp"/>
+
+        <Spinner
+            android:id="@+id/sp_folder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="0dp"
+            />
+    </LinearLayout>
+
+
 
 
 </RelativeLayout>

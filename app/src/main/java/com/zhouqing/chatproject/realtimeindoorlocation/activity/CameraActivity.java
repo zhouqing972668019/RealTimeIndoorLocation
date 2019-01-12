@@ -8,7 +8,10 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.google.android.gms.common.images.Size;
@@ -46,10 +49,15 @@ public class CameraActivity extends AppCompatActivity {
     private TextRecognitionProcessor textRecognitionProcessor;
     private Button btnControl;
     private Button btnLocalization;
+    private Spinner spFolder;
 
     public static String TIMESTAMP_PATH = null;
 
     private static final String TAG = "CameraActivity";
+
+    //待定位文件夹
+    private static int folderIndex = 0;
+    String[] folders;
 
     //接收服务传过来的数据并显示
     private MyReceiver receiver=null;
@@ -84,6 +92,25 @@ public class CameraActivity extends AppCompatActivity {
         tvOri = findViewById(R.id.tv_ori);
         tvGyroOri = findViewById(R.id.tv_gyro_ori);
         tvMagAccOri = findViewById(R.id.tv_mag_acc_ori);
+        //选择文件夹，直接定位
+        spFolder = findViewById(R.id.sp_folder);
+        folders = LocationInfoUtil.getFoldersByTimeDesc();
+        ArrayAdapter<String> folderAdapter = new ArrayAdapter<>(this,android.R.layout.simple_spinner_dropdown_item,folders);
+        spFolder.setAdapter(folderAdapter);
+        spFolder.setSelection(FileUtil.getSPInt(CameraActivity.this,"folderSelection"));
+        spFolder.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                //toast("you selected:"+position);
+                FileUtil.saveSpInt(CameraActivity.this,"folderSelection",position);
+                folderIndex = position;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
 
         //FirebaseApp.initializeApp(this);
 
@@ -221,7 +248,9 @@ public class CameraActivity extends AppCompatActivity {
         List<String> sensorInfoList = new ArrayList<>();
         List<String> textDetectionInfoList = new ArrayList<>();
         try {
-            LocationInfoUtil.getRecentCollectionData(sensorInfoList,textDetectionInfoList);
+            //直接定位最新的数据
+//            LocationInfoUtil.getRecentCollectionData(sensorInfoList,textDetectionInfoList);
+            LocationInfoUtil.getTargetCollectionData(sensorInfoList,textDetectionInfoList,folders[folderIndex]);
         } catch (ParseException e) {
             e.printStackTrace();
         }

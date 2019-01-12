@@ -6,6 +6,8 @@ import com.zhouqing.chatproject.realtimeindoorlocation.model.TextDetectionAndPoi
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -451,6 +453,39 @@ public class LocationInfoUtil {
             }
         }
         FileUtil.readFileToGetCollectionData(Constant.COLLECTION_DATA_PATH + resultFolder + "/",sensorInfoList,textDetectionInfoList);
+    }
+
+    //获取当前文件夹下的所有子文件夹，按时间递减顺序返回
+    public static String[] getFoldersByTimeDesc(){
+        List<String> folderList = FileUtil.getChildFolder(Constant.COLLECTION_DATA_PATH);
+        Collections.sort(folderList, new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+                try {
+                    Date date1 = df.parse(o1);
+                    Date date2 = df.parse(o2);
+                    if(date1.after(date2)){
+                        return 1;
+                    }
+                    else if(date1.before(date2)){
+                        return -1;
+                    }
+                    else{
+                        return 0;
+                    }
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                return 0;
+            }
+        });
+        return folderList.toArray(new String[folderList.size()]);
+    }
+
+    //获取最新的采集数据
+    public static void getTargetCollectionData(List<String> sensorInfoList,List<String> textDetectionInfoList,String folderName) throws ParseException {
+        FileUtil.readFileToGetCollectionData(Constant.COLLECTION_DATA_PATH + folderName + "/",sensorInfoList,textDetectionInfoList);
     }
 
 }
