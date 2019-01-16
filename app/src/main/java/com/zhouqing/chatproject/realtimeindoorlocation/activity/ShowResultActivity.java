@@ -1,6 +1,7 @@
 package com.zhouqing.chatproject.realtimeindoorlocation.activity;
 
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -23,6 +24,7 @@ import com.zhouqing.chatproject.realtimeindoorlocation.model.Coordinate;
 import com.zhouqing.chatproject.realtimeindoorlocation.util.Constant;
 import com.zhouqing.chatproject.realtimeindoorlocation.util.FileUtil;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,6 +92,50 @@ public class ShowResultActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         sensorManagerOrientationOld.unregisterListener(listenerOrientationOld);
+    }
+
+    protected void onResume() {
+        /**
+         * 设置为横屏
+         */
+        if(isWidthGreaterThanHeight()){
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        }
+        super.onResume();
+    }
+
+    /**
+     * 读取商店信息 判断长宽比 作为横屏的依据
+     * @return
+     */
+    public boolean isWidthGreaterThanHeight() {
+        Map<String,List<Coordinate>> locationMap = new HashMap<>();
+        Map<String,List<Coordinate>> shapeMap = new HashMap<>();
+        int position = FileUtil.getSPInt(ShowResultActivity.this,"shopSelection");
+        FileUtil.loadShopInfoAsList(ShowResultActivity.this,position,locationMap,shapeMap);
+        //寻找x和y坐标中的最大最小值
+        float minX = Float.MAX_VALUE;
+        float maxX = Float.MIN_VALUE;
+        float minY = Float.MAX_VALUE;
+        float maxY = Float.MIN_VALUE;
+        for(String shopName: shapeMap.keySet()){
+            List<Coordinate> coordinates = shapeMap.get(shopName);
+            for(Coordinate coordinate:coordinates){
+                if(coordinate.x > maxX){
+                    maxX = coordinate.x;
+                }
+                else if(coordinate.x < minX){
+                    minX = coordinate.x;
+                }
+                if(coordinate.y > maxY){
+                    maxY = coordinate.y;
+                }
+                else if(coordinate.y < minY){
+                    minY = coordinate.y;
+                }
+            }
+        }
+        return (maxX - minX) > (maxY - minY);
     }
 
 

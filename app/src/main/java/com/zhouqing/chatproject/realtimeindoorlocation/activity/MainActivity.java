@@ -1,8 +1,8 @@
 package com.zhouqing.chatproject.realtimeindoorlocation.activity;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -17,6 +17,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button btnShowResult;
     private TextView tvContent;
 
+    private static final String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +33,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnFloorPlanAuto.setOnClickListener(this);
         btnCollectionData.setOnClickListener(this);
         btnShowResult.setOnClickListener(this);
+
     }
 
     @Override

@@ -461,10 +461,12 @@ public class LocationInfoUtil {
         Collections.sort(folderList, new Comparator<String>() {
             @Override
             public int compare(String o1, String o2) {
+                String[] elements1 = o1.split("_");
+                String[] elements2 = o2.split("_");
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
                 try {
-                    Date date1 = df.parse(o1);
-                    Date date2 = df.parse(o2);
+                    Date date1 = df.parse(elements1[1]);
+                    Date date2 = df.parse(elements2[1]);
                     if(date1.after(date2)){
                         return 1;
                     }

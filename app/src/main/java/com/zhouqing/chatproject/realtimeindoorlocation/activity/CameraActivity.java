@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -50,6 +51,7 @@ public class CameraActivity extends AppCompatActivity {
     private Button btnControl;
     private Button btnLocalization;
     private Spinner spFolder;
+    private LinearLayout llFolder;
 
     public static String TIMESTAMP_PATH = null;
 
@@ -112,6 +114,8 @@ public class CameraActivity extends AppCompatActivity {
             }
         });
 
+        llFolder = findViewById(R.id.ll_folder);
+
         //FirebaseApp.initializeApp(this);
 
         preview = (CameraSourcePreview) findViewById(R.id.camera_source_preview);
@@ -156,6 +160,7 @@ public class CameraActivity extends AppCompatActivity {
     //控制按钮的两个方法
     public void collectionStart(){
         btnLocalization.setVisibility(View.GONE);
+        llFolder.setVisibility(View.GONE);
         btnControl.setText("Stop");
         createCameraSource();
         startCameraSource();
@@ -170,8 +175,9 @@ public class CameraActivity extends AppCompatActivity {
         List<String> textDetectionInfoList = textRecognitionProcessor.getTextDetectionInfoAll();
         //寻找文本识别区域
         Constant.findAreaOfTextDetection(textDetectionInfoList);
+        int shopSelection = FileUtil.getSPInt(CameraActivity.this,"shopSelection");
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
-        TIMESTAMP_PATH = df.format(new Date())+"/";// new Date()为获取当前系统时间
+        TIMESTAMP_PATH = Constant.SHOP_NAMES[shopSelection] + "_" + df.format(new Date())+"/";// new Date()为获取当前系统时间
         final String sensorContent = LocationInfoUtil.getStrBySensorInfoList(sensorInfoList);
         final String textContent = LocationInfoUtil.getStrByTextDetectionInfoList(textDetectionInfoList);
         new Thread(new Runnable() {
@@ -347,10 +353,10 @@ public class CameraActivity extends AppCompatActivity {
                 //保存定位结果信息 保存到文件
                 LocationInfoUtil.getResultPrintContentFinal(resultSB,answer,gyro_answer,mag_acc_answer,complex_gyro_answer,
                         POINameList,angleList,gyroAngleList,magAccAngleList,complexGyroAngleList);
-                if(method == 0){
-                    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
-                    TIMESTAMP_PATH = df.format(new Date())+"/";// new Date()为获取当前系统时间
-                }
+//                if(method == -1){
+//                    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+//                    TIMESTAMP_PATH = df.format(new Date())+"/";// new Date()为获取当前系统时间
+//                }
                 FileUtil.saveLocationResult(CameraActivity.this,answer,gyro_answer,mag_acc_answer,complex_gyro_answer);
                 //通过本次定位结果确定x轴基准角
                 float startAngle = LocationInfoUtil.getStartAngle(textDetectionInfoMap,floorPlanMap,answer);

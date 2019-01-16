@@ -2,6 +2,9 @@ package com.zhouqing.chatproject.realtimeindoorlocation.util;
 
 import android.os.Environment;
 
+import com.amap.api.maps.AMapUtils;
+import com.amap.api.maps.model.LatLng;
+
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,9 +42,16 @@ public class Constant {
     //绘制平面图时平面图距离手机边框的距离
     public static final int MARGIN = 20;
 
-    public static final String[] SHOP_FILENAMES = {"SYS_LOCATION_INFO.txt","WDK_1F_SHOP_LOCATION_INFO.txt","WDK_2F_SHOP_LOCATION_INFO.txt"};
-    public static final String[] SHOP_NAMES = {"SYS","WDK FLOOR 1","WDK FLOOR 2"};
-    public static final String[] SHOP_SHAPES = {"SYS_SHAPE_INFO.txt","WDK_1F_SHOP_SHAPE_INFO.txt","WDK_2F_SHOP_SHAPE_INFO.txt"};
+    public static final String[] SHOP_FILENAMES = {"SYS_LOCATION_INFO.txt","WDK_1F_SHOP_LOCATION_INFO.txt","WDK_2F_SHOP_LOCATION_INFO.txt",
+            "XZG_1F_SHOP_LOCATION_INFO.txt","XZG_2F_SHOP_LOCATION_INFO.txt"};
+    public static final String[] SHOP_NAMES = {"SYS","WDK FLOOR 1","WDK FLOOR 2","XZG FLOOR 1","XZG FLOOR 2"};
+    public static final String[] SHOP_SHAPES = {"SYS_SHAPE_INFO.txt","WDK_1F_SHOP_SHAPE_INFO.txt","WDK_2F_SHOP_SHAPE_INFO.txt",
+            "XZG_1F_SHOP_SHAPE_INFO.txt","XZG_2F_SHOP_SHAPE_INFO.txt"};
+
+    //室内平面图对应的经纬度
+    public static final double[] SYS_LATLNG = {40.006638,116.340967};
+    public static final double[] WDK_LATLNG = {39.993915,116.34668};
+    public static final double[] XZG_LATLNG = {39.984237,116.321751};
 
     /**
      * @brief 判断两个String字符串的相似程度（因为用户输入的字符可能和兴趣点的名字不能完全匹配）
@@ -131,6 +141,37 @@ public class Constant {
             }
         }
         System.out.println("textDetectionArea:"+areaLeft+","+areaTop+","+areaRight+","+areaBottom);
+    }
+
+    public static float calculateDisByLatiAndLong(double latitude1, double longitude1, double latitude2, double longitude2){
+        LatLng latLng1 = new LatLng(latitude1,longitude1);
+        LatLng latLng2 = new LatLng(latitude2,longitude2);
+        return AMapUtils.calculateLineDistance(latLng1,latLng2);
+    }
+
+    public static int getShopSelectionByDis(double latitude,double longitude){
+        float minDis = Float.MAX_VALUE;
+        int shopSelection = -1;
+        float sysDis = calculateDisByLatiAndLong(latitude,longitude,SYS_LATLNG[0],SYS_LATLNG[1]);
+        if(sysDis<minDis){
+            minDis = sysDis;
+            shopSelection = 0;
+        }
+        System.out.println("sysDis:"+sysDis);
+        float wdkDis = calculateDisByLatiAndLong(latitude,longitude,WDK_LATLNG[0],WDK_LATLNG[1]);
+        if(wdkDis<minDis){
+            minDis = wdkDis;
+            shopSelection = 1;
+        }
+        System.out.println("wdkDis:"+wdkDis);
+        float xzgDis = calculateDisByLatiAndLong(latitude,longitude,XZG_LATLNG[0],XZG_LATLNG[1]);
+        if(xzgDis<minDis){
+            minDis = xzgDis;
+            shopSelection = 3;
+        }
+        System.out.println("xzgDis:"+xzgDis);
+        System.out.println("shopSelection:"+shopSelection+",minDis:"+minDis);
+        return shopSelection;
     }
 
 
