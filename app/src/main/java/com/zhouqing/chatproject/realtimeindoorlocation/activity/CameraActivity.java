@@ -14,6 +14,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.images.Size;
 import com.zhouqing.chatproject.realtimeindoorlocation.R;
@@ -374,18 +375,21 @@ public class CameraActivity extends AppCompatActivity {
                     }).start();
                 }
                 showInfo = showInfoSB.toString();
+                Toast.makeText(CameraActivity.this, "定位成功！", Toast.LENGTH_SHORT).show();
             }
             else{
                 showInfo = "Lack of POIs to locate!";
+                Toast.makeText(CameraActivity.this, "POI数量不足，定位失败！", Toast.LENGTH_SHORT).show();
             }
-            Intent intent = getIntent();
-            intent.putExtra("showInfo",showInfo);
-            setResult(RESULT_OK, intent);
+//            Intent intent = getIntent();
+//            intent.putExtra("showInfo",showInfo);
+//            setResult(RESULT_OK, intent);
         }
         //某个POI出现了多次 需要特殊处理
         else{
 
         }
+        startActivity(new Intent(CameraActivity.this,ShowResultActivity.class));
         this.finish();
     }
 }

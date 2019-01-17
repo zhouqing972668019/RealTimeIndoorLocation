@@ -1,11 +1,13 @@
 package com.zhouqing.chatproject.realtimeindoorlocation.activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,6 +27,7 @@ public class AutoSettingActivity extends AppCompatActivity {
 
     private Spinner spShop;
     private TextView tvFloorPlanInfo;
+    private Button btnCollectionData;
 
     public AMapLocationClient mLocationClient = null;
     public AMapLocationClientOption mLocationOption = null;
@@ -39,6 +42,7 @@ public class AutoSettingActivity extends AppCompatActivity {
         startLocaion();
         tvFloorPlanInfo = findViewById(R.id.tv_floor_plan_info);
         spShop = findViewById(R.id.sp_shop);
+        btnCollectionData = findViewById(R.id.btn_collection_data);
         ArrayAdapter<String> shopAdapter = new ArrayAdapter<>(this,android.R.layout.simple_spinner_dropdown_item,Constant.SHOP_NAMES);
         spShop.setAdapter(shopAdapter);
         //spShop.setSelection(FileUtil.getSPInt(AutoSettingActivity.this,"shopSelection"));
@@ -47,7 +51,7 @@ public class AutoSettingActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 //toast("you selected:"+position);
                 FileUtil.loadFloorPlan(AutoSettingActivity.this,position);
-                showFloorPlanInfo();
+                //showFloorPlanInfo();
                 FileUtil.saveSpInt(AutoSettingActivity.this,"shopSelection",position);
             }
 
@@ -56,7 +60,13 @@ public class AutoSettingActivity extends AppCompatActivity {
 
             }
         });
-        showFloorPlanInfo();
+        btnCollectionData.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(AutoSettingActivity.this,CameraActivity.class));
+            }
+        });
+        //showFloorPlanInfo();
     }
 
     public void startLocaion(){

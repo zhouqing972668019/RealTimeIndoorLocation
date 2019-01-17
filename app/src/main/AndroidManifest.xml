@@ -41,11 +41,6 @@
         </meta-data>
 
         <activity android:name=".activity.MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity android:name=".activity.CameraActivity" />
         <activity android:name=".activity.ManualSettingActivity" />
@@ -55,7 +50,13 @@
             android:enabled="true"
             android:exported="true" />
 
-        <activity android:name=".activity.AutoSettingActivity" />
+        <activity android:name=".activity.AutoSettingActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity android:name=".activity.TextRecActivity" >
         </activity>
         <activity android:name=".activity.ShowResultActivity" />

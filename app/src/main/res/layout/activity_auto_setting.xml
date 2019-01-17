@@ -33,6 +33,7 @@
     </View>
 
     <ScrollView
+        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
         <TextView
@@ -44,5 +45,11 @@
             android:scrollbars="vertical"
             />
     </ScrollView>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/btn_collection_data"
+        android:text="进入"/>
 
 </LinearLayout>
