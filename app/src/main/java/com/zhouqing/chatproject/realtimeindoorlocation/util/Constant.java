@@ -174,5 +174,21 @@ public class Constant {
         return shopSelection;
     }
 
+    /**
+     * 移除字符串中的非法字符
+     * @param POIName
+     * @return
+     */
+    public static String removeIllegalAlphabet(String POIName){
+        String result = "";
+        for(int i=0;i<POIName.length();i++){
+            char c = POIName.charAt(i);
+            if((c>='0' && c<='9')||(c>='a' && c<='z')||(c>='A' && c<='Z')){
+                result += c;
+            }
+        }
+        return result;
+    }
+
 
 }
