@@ -43,15 +43,20 @@ public class Constant {
     public static final int MARGIN = 20;
 
     public static final String[] SHOP_FILENAMES = {"SYS_LOCATION_INFO.txt","WDK_1F_SHOP_LOCATION_INFO.txt","WDK_2F_SHOP_LOCATION_INFO.txt",
-            "XZG_1F_SHOP_LOCATION_INFO.txt","XZG_2F_SHOP_LOCATION_INFO.txt"};
-    public static final String[] SHOP_NAMES = {"SYS","WDK FLOOR 1","WDK FLOOR 2","XZG FLOOR 1","XZG FLOOR 2"};
+            "XZG_1F_SHOP_LOCATION_INFO.txt","XZG_2F_SHOP_LOCATION_INFO.txt","WJ_1F_SHOP_LOCATION_INFO.txt","WJ_2F_SHOP_LOCATION_INFO.txt",
+            "XD_1F_SHOP_LOCATION_INFO.txt","XD_2F_SHOP_LOCATION_INFO.txt"};
+    public static final String[] SHOP_NAMES = {"SYS","WDK FLOOR 1","WDK FLOOR 2","XZG FLOOR 1","XZG FLOOR 2","WJ FLOOR 1","WJ FLOOR 2",
+            "XD FLOOR 1","XD FLOOR 2"};
     public static final String[] SHOP_SHAPES = {"SYS_SHAPE_INFO.txt","WDK_1F_SHOP_SHAPE_INFO.txt","WDK_2F_SHOP_SHAPE_INFO.txt",
-            "XZG_1F_SHOP_SHAPE_INFO.txt","XZG_2F_SHOP_SHAPE_INFO.txt"};
+            "XZG_1F_SHOP_SHAPE_INFO.txt","XZG_2F_SHOP_SHAPE_INFO.txt","WJ_1F_SHOP_SHAPE_INFO.txt","WJ_2F_SHOP_SHAPE_INFO.txt",
+            "XD_1F_SHOP_SHAPE_INFO.txt","XD_2F_SHOP_SHAPE_INFO.txt"};
 
     //室内平面图对应的经纬度
     public static final double[] SYS_LATLNG = {40.006638,116.340967};
     public static final double[] WDK_LATLNG = {39.993915,116.34668};
     public static final double[] XZG_LATLNG = {39.984237,116.321751};
+    public static final double[] WJ_LATLNG = {39.998656,116.47493};
+    public static final double[] XD_LATLNG = {39.916967,116.379299};
 
     /**
      * @brief 判断两个String字符串的相似程度（因为用户输入的字符可能和兴趣点的名字不能完全匹配）
@@ -170,6 +175,19 @@ public class Constant {
             shopSelection = 3;
         }
         System.out.println("xzgDis:"+xzgDis);
+        float wjDis = calculateDisByLatiAndLong(latitude,longitude,WJ_LATLNG[0],WJ_LATLNG[1]);
+        if(wjDis<minDis){
+            minDis = wjDis;
+            shopSelection = 5;
+        }
+        System.out.println("wjDis:"+wjDis);
+        float xdDis = calculateDisByLatiAndLong(latitude,longitude,XD_LATLNG[0],XD_LATLNG[1]);
+        if(xdDis<minDis){
+            minDis = xdDis;
+            shopSelection = 7;
+        }
+        System.out.println("xdDis:"+xdDis);
+
         System.out.println("shopSelection:"+shopSelection+",minDis:"+minDis);
         return shopSelection;
     }
