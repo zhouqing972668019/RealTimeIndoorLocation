@@ -23,6 +23,7 @@ import com.zhouqing.chatproject.realtimeindoorlocation.R;
 import com.zhouqing.chatproject.realtimeindoorlocation.model.Coordinate;
 import com.zhouqing.chatproject.realtimeindoorlocation.util.Constant;
 import com.zhouqing.chatproject.realtimeindoorlocation.util.FileUtil;
+import com.zhouqing.chatproject.realtimeindoorlocation.util.LocationInfoUtil;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -52,6 +53,24 @@ public class ShowResultActivity extends AppCompatActivity {
 
         canvasView =new CanvasView(this);
         setContentView(canvasView);
+        canvasView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                //保存当前界面截屏
+                String filePath = "";
+                if(CameraActivity.TIMESTAMP_PATH != null){
+                    filePath = CameraActivity.TIMESTAMP_PATH;
+                }
+                else{
+                    String[] folders = LocationInfoUtil.getFoldersByTimeDesc();
+                    int folderPos = FileUtil.getSPInt(ShowResultActivity.this,"folderSelection");
+                    filePath = folders[folderPos] + "/";
+                }
+                //System.out.println("filePath:"+filePath);
+                //截屏 todo
+                return false;
+            }
+        });
 
         //1.获取传感器管理对象SensorManager
         sensorManagerOrientationOld = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -76,7 +95,7 @@ public class ShowResultActivity extends AppCompatActivity {
 
             }
         };
-        //由于方向传感器的精确度要求通常都比较高,使用的是 SENSOR_DELAY_GAME
+        //由于方向传感器的精确度要求通常都比较高,使用的是 SENSOR_DELAY_FASTEST
         sensorManagerOrientationOld.registerListener(listenerOrientationOld, sensorOrientation, SensorManager.SENSOR_DELAY_FASTEST);
     }
 

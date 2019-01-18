@@ -296,6 +296,8 @@ public class FileUtil {
 		return dir.delete();
 	}
 
+
+
 	//bitmap转成文件存储用于拍照或者相册选取的时候
 	public static void saveImageByBitmap(Bitmap bmp, String path, String fileName) {
 		File appDir = new File(path);
