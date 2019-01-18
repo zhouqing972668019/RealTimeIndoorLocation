@@ -42,6 +42,12 @@ public class Constant {
     //绘制平面图时平面图距离手机边框的距离
     public static final int MARGIN = 20;
 
+    //判断两个文本是否相邻时，顶部阈值
+    public static final double ADJACENT_THRESHOLD = 15d;
+
+    //判断识别文本框到手机屏幕中心的距离阈值
+    public static final double CENTOR_DIS_THRESHOLD = 120d;
+
     public static final String[] SHOP_FILENAMES = {"SYS_LOCATION_INFO.txt","WDK_1F_SHOP_LOCATION_INFO.txt","WDK_2F_SHOP_LOCATION_INFO.txt",
             "XZG_1F_SHOP_LOCATION_INFO.txt","XZG_2F_SHOP_LOCATION_INFO.txt","WJ_1F_SHOP_LOCATION_INFO.txt","WJ_2F_SHOP_LOCATION_INFO.txt",
             "XD_1F_SHOP_LOCATION_INFO.txt","XD_2F_SHOP_LOCATION_INFO.txt"};

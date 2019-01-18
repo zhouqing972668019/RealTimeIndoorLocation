@@ -249,7 +249,7 @@ public class CameraActivity extends AppCompatActivity {
         }
     }
 
-    //直接对上一次记录的中间文件定位（可能修改了室内平面图信息）
+    //直接对某一次记录的中间文件定位（可能修改了室内平面图信息）
     public void localization(){
         List<String> sensorInfoList = new ArrayList<>();
         List<String> textDetectionInfoList = new ArrayList<>();
@@ -257,10 +257,10 @@ public class CameraActivity extends AppCompatActivity {
             //直接定位最新的数据
 //            LocationInfoUtil.getRecentCollectionData(sensorInfoList,textDetectionInfoList);
             LocationInfoUtil.getTargetCollectionData(sensorInfoList,textDetectionInfoList,folders[folderIndex]);
+            indoorLocation(textDetectionInfoList,sensorInfoList,-1);
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        indoorLocation(textDetectionInfoList,sensorInfoList,-1);
     }
 
     //-----------------------------------------------------------------------------------------
@@ -365,18 +365,27 @@ public class CameraActivity extends AppCompatActivity {
                 FileUtil.savePOINames(CameraActivity.this,textDetectionInfoMap);
                 showInfoSB.append("startAngle:").append(startAngle);
                 resultSB.append("startAngle:").append(startAngle).append("\n");
-                if(method == 0){
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            FileUtil.writeStrToPath("result", resultSB.toString(), Constant.COLLECTION_DATA_PATH + TIMESTAMP_PATH);
-                        }
-                    }).start();
-                }
                 showInfo = showInfoSB.toString();
             }
             else{
                 showInfo = "Lack of POIs to locate!";
+            }
+            //将定位结果写到文件中
+            if(method == 0){
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        FileUtil.writeStrToPath("result", resultSB.toString(), Constant.COLLECTION_DATA_PATH + TIMESTAMP_PATH);
+                    }
+                }).start();
+            }
+            else{
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        FileUtil.writeStrToPath("result", resultSB.toString(), Constant.COLLECTION_DATA_PATH + folders[folderIndex] + "/");
+                    }
+                }).start();
             }
             Intent intent = getIntent();
             intent.putExtra("showInfo",showInfo);
