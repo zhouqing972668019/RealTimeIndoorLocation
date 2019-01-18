@@ -176,7 +176,7 @@ public class CameraActivity extends AppCompatActivity {
         //寻找文本识别区域
         Constant.findAreaOfTextDetection(textDetectionInfoList);
         int shopSelection = FileUtil.getSPInt(CameraActivity.this,"shopSelection");
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH_mm_ss");//设置日期格式
         TIMESTAMP_PATH = Constant.SHOP_NAMES[shopSelection] + "_" + df.format(new Date())+"/";// new Date()为获取当前系统时间
         final String sensorContent = LocationInfoUtil.getStrBySensorInfoList(sensorInfoList);
         final String textContent = LocationInfoUtil.getStrByTextDetectionInfoList(textDetectionInfoList);

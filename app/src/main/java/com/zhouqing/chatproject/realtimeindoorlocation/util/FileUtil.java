@@ -156,7 +156,7 @@ public class FileUtil {
 	//将指定字符串写入文件
 	public static void writeStrToFile(String fileContent)
 	{
-		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH_mm_ss");//设置日期格式
 		String outputFileName="输出结果："+df.format(new Date());// new Date()为获取当前系统时间
 		if (!new File(Constant.OUTPUT_FILE_PATH).exists()) {
 			new File(Constant.OUTPUT_FILE_PATH).mkdirs();

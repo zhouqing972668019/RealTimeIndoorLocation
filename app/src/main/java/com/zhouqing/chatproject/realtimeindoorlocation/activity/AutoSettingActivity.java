@@ -25,6 +25,7 @@ public class AutoSettingActivity extends AppCompatActivity {
 
     private Spinner spShop;
     private TextView tvFloorPlanInfo;
+    private TextView tvFloor;
 
     public AMapLocationClient mLocationClient = null;
     public AMapLocationClientOption mLocationOption = null;
@@ -39,6 +40,7 @@ public class AutoSettingActivity extends AppCompatActivity {
         startLocaion();
         tvFloorPlanInfo = findViewById(R.id.tv_floor_plan_info);
         spShop = findViewById(R.id.sp_shop);
+        tvFloor = findViewById(R.id.tv_floor);
         ArrayAdapter<String> shopAdapter = new ArrayAdapter<>(this,android.R.layout.simple_spinner_dropdown_item,Constant.SHOP_NAMES);
         spShop.setAdapter(shopAdapter);
         //spShop.setSelection(FileUtil.getSPInt(AutoSettingActivity.this,"shopSelection"));
@@ -88,6 +90,10 @@ public class AutoSettingActivity extends AppCompatActivity {
         public void onLocationChanged(AMapLocation amapLocation) {
             if (amapLocation !=null ) {
                 if (amapLocation.getErrorCode() == 0) {
+                    String floorInfo = amapLocation.getFloor();
+                    if(floorInfo!=null && !floorInfo.equals("")){
+                        tvFloor.setText(floorInfo);
+                    }
                     //定位成功回调信息，设置相关消息
 //                    Log.i(TAG,"当前定位结果来源-----"+amapLocation.getLocationType());//获取当前定位结果来源，如网络定位结果，详见定位类型表
 //                    Log.i(TAG,"纬度 ----------------"+amapLocation.getLatitude());//获取纬度

@@ -439,7 +439,7 @@ public class LocationInfoUtil {
     //获取最新的采集数据
     public static void getRecentCollectionData(List<String> sensorInfoList,List<String> textDetectionInfoList) throws ParseException {
         List<String> folderList = FileUtil.getChildFolder(Constant.COLLECTION_DATA_PATH);
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH_mm_ss");//设置日期格式
         String resultFolder = folderList.get(0);
         Date resultDate = df.parse(resultFolder);
         if(folderList.size() > 1){
@@ -463,10 +463,10 @@ public class LocationInfoUtil {
             public int compare(String o1, String o2) {
                 String[] elements1 = o1.split("_");
                 String[] elements2 = o2.split("_");
-                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH_mm_ss");//设置日期格式
                 try {
-                    Date date1 = df.parse(elements1[1]);
-                    Date date2 = df.parse(elements2[1]);
+                    Date date1 = df.parse(o1.substring(elements1[0].length()+1));
+                    Date date2 = df.parse(o2.substring(elements2[0].length()+1));
                     if(date1.after(date2)){
                         return 1;
                     }
