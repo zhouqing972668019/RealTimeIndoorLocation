@@ -11,3 +11,6 @@ openCVLibrary340/*
 .idea/misc.xml
 .idea/modules.xml
 openCVLibrary340/build/*
+.idea/
+app/release/app-release.apk
+app/release/output.json
