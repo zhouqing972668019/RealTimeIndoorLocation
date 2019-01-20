@@ -2,6 +2,7 @@ package com.zhouqing.chatproject.realtimeindoorlocation.util;
 
 import com.zhouqing.chatproject.realtimeindoorlocation.model.StandardLocationInfo;
 import com.zhouqing.chatproject.realtimeindoorlocation.model.TextDetectionAndPoi;
+import com.zhouqing.chatproject.realtimeindoorlocation.model.TextDetectionInfo;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -9,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -220,40 +222,198 @@ public class LocationInfoUtil {
 //        }
 //    }
 
-    //获取文字识别信息--只考虑出现一次的情况
-    public static void getTextDetectionInfo(int previewWidth, Map<String, StandardLocationInfo> floorPlanMap, List<String> textDetectionList, Map<String, TextDetectionAndPoi> textDetectionInfoMap, Map<String, Integer> POIDetectionNumMap){
-        for(String textDetection:textDetectionList){
-            String[] elements = textDetection.split(" ");
+    //对识别的文本内容进行分析 合并左右相邻的文本
+    public static void processTextDetectionInfo(List<String> textDetectionList,List<TextDetectionInfo> resultList){
+        //System.out.println("process before:"+textDetectionList.toString());
+        List<TextDetectionInfo> textDetectionInfoList = new ArrayList<>();
+        for(String textDetectionLine:textDetectionList){
+            String[] elements = textDetectionLine.split(" ");
             if(elements.length != 6){
                 continue;
             }
-            //判断当前文字识别信息是否与某个POI名称相同
-            for(String POIName:floorPlanMap.keySet()){
-                if(Constant.calculateStringDistance(POIName,elements[5])>SIMILARITY_THRESHOLD) {
-                    double left = Double.parseDouble(elements[1]);
-                    double right = Double.parseDouble(elements[3]);
-                    String timeStamp = elements[0];
-                    double centerDis = calCenterDis(previewWidth, left, right);
-                    if (!textDetectionInfoMap.containsKey(POIName)) {
+            TextDetectionInfo textDetectionInfo = new TextDetectionInfo(Long.parseLong(elements[0]),
+                    Double.parseDouble(elements[1]),Double.parseDouble(elements[2]),Double.parseDouble(elements[3]),
+                    Double.parseDouble(elements[4]),elements[5]);
+            textDetectionInfoList.add(textDetectionInfo);
+        }
+        //重新构造文本识别内容列表
+        for(int i=0;i<textDetectionInfoList.size();i++){
+            TextDetectionInfo curInfo = textDetectionInfoList.get(i);
+            if(i == textDetectionInfoList.size() - 1){
+                resultList.add(curInfo);
+                break;
+            }
+            TextDetectionInfo nextInfo = textDetectionInfoList.get(i+1);
+            if(curInfo.timeStamp != nextInfo.timeStamp){
+                resultList.add(curInfo);
+            }
+            else{
+                if(isAdjacent(curInfo,nextInfo)){
+                    nextInfo.textContent = curInfo.textContent + nextInfo.textContent;
+                    nextInfo.left = curInfo.left;
+                    nextInfo.top = curInfo.top;
+                }
+                else{
+                    resultList.add(curInfo);
+                }
+            }
+        }
+        //复制处理后结果
+//        textDetectionList.clear();
+//        for(TextDetectionInfo info:resultList){
+//            String line = info.timeStamp+" "+info.left+" "+info.top+" "+info.right+" "+info.bottom+" "+info.textContent;
+//            textDetectionList.add(line);
+//        }
+        //System.out.println("process after:"+textDetectionList.toString());
+    }
+
+    //判断两个文本是否相邻
+    public static boolean isAdjacent(TextDetectionInfo curInfo,TextDetectionInfo nextInfo){
+        if(Math.abs(curInfo.top - nextInfo.top) >= Constant.ADJACENT_THRESHOLD){
+            return false;
+        }
+        if(curInfo.left > nextInfo.left){
+            TextDetectionInfo t = curInfo;
+            curInfo = nextInfo;
+            nextInfo = t;
+        }
+        double singleDis = (curInfo.right - curInfo.left)/curInfo.textContent.length();
+        return (nextInfo.left - curInfo.right) <= singleDis;
+    }
+
+    //获取文字识别信息--只考虑出现一次的情况
+    public static void getTextDetectionInfo(int previewWidth, Map<String, StandardLocationInfo> floorPlanMap, List<String> textDetectionList, Map<String, TextDetectionAndPoi> textDetectionInfoMap, Map<String, Integer> POIDetectionNumMap){
+        List<TextDetectionInfo> resultList = new ArrayList<>();
+        processTextDetectionInfo(textDetectionList,resultList);
+        //建立时间戳与文本的hash表
+        Map<Long,List<TextDetectionInfo>> resultMap = new LinkedHashMap<>();
+        for(int i=0;i<resultList.size();i++){
+            long timeStamp = resultList.get(i).timeStamp;
+            if(!resultMap.containsKey(timeStamp)){
+                List<TextDetectionInfo> textDetectionInfoList = new ArrayList<>();
+                textDetectionInfoList.add(resultList.get(i));
+                resultMap.put(timeStamp,textDetectionInfoList);
+            }
+            else{
+                List<TextDetectionInfo> textDetectionInfoList = resultMap.get(timeStamp);
+                textDetectionInfoList.add(resultList.get(i));
+            }
+        }
+        /*
+            遍历每个时间戳下所有识别的文本内容
+            规则1：每个文本只能被识别为1个POI
+            规则2：每个时间戳下只保留面积最大的POI
+            规则3：只保留中心距离相机中心距离在某个阈值内的POI
+         */
+        for(Long timeStamp:resultMap.keySet()){
+            List<TextDetectionInfo> textDetectionInfoList = resultMap.get(timeStamp);
+            TextDetectionInfo resultTextDetectionInfo = null;
+            double maxArea = Integer.MIN_VALUE;
+            String resultPOIName = "";
+            for(TextDetectionInfo textDetectionInfo:textDetectionInfoList){
+                String POIName = "";
+                int similarity = Integer.MIN_VALUE;
+                //判断当前文字识别信息是否与某个POI名称相同(找出相似度最高的POI)
+                for(String floorPlanPOIName:floorPlanMap.keySet()){
+                    String modifyFloorPlanPOIName = Constant.removeIllegalAlphabet(floorPlanPOIName);
+                    String modifyTextDetection = Constant.removeIllegalAlphabet(textDetectionInfo.textContent);
+                    int value = Constant.calculateStringDistance(modifyFloorPlanPOIName,modifyTextDetection);
+                    if(value > similarity){
+                        similarity = value;
+                        POIName = floorPlanPOIName;
+                    }
+                }
+                if(similarity > SIMILARITY_THRESHOLD) {
+                    double area = calcalateArea(textDetectionInfo);
+                    if(area > maxArea){
+                        maxArea = area;
+                        resultTextDetectionInfo = textDetectionInfo;
+                        resultPOIName = POIName;
+                    }
+                }
+            }
+            if(resultTextDetectionInfo != null){
+                double left = resultTextDetectionInfo.left;
+                double right = resultTextDetectionInfo.right;
+                double centerDis = calCenterDis(previewWidth, left, right);
+                //小于阈值的文本框进行判断 减少误判
+                if(centerDis < Constant.CENTOR_DIS_THRESHOLD){
+                    if (!textDetectionInfoMap.containsKey(resultPOIName)) {
                         TextDetectionAndPoi textDetectionAndPoi = new TextDetectionAndPoi();
                         textDetectionAndPoi.timeStampList = new ArrayList<>();
-                        textDetectionAndPoi.timeStampList.add(timeStamp);
-                        textDetectionAndPoi.timeStamp = timeStamp;
+                        textDetectionAndPoi.timeStampList.add(timeStamp+"");
+                        textDetectionAndPoi.timeStamp = timeStamp+"";
                         textDetectionAndPoi.centerDis = centerDis;
-                        textDetectionInfoMap.put(POIName, textDetectionAndPoi);
+                        textDetectionInfoMap.put(resultPOIName, textDetectionAndPoi);
                         //存入POI数量hash表中
-                        POIDetectionNumMap.put(POIName, 1);
+                        POIDetectionNumMap.put(resultPOIName, 1);
                     } else {
-                        TextDetectionAndPoi textDetectionAndPoi = textDetectionInfoMap.get(POIName);
-                        textDetectionAndPoi.timeStampList.add(timeStamp);
+                        TextDetectionAndPoi textDetectionAndPoi = textDetectionInfoMap.get(resultPOIName);
+                        textDetectionAndPoi.timeStampList.add(timeStamp+"");
                         if (centerDis < textDetectionAndPoi.centerDis) {
-                            textDetectionAndPoi.timeStamp = timeStamp;
+                            textDetectionAndPoi.timeStamp = timeStamp+"";
                             textDetectionAndPoi.centerDis = centerDis;
                         }
                     }
                 }
             }
+
         }
+
+//        for(String textDetection:textDetectionList){
+//            String[] elements = textDetection.split(" ");
+//            if(elements.length != 6){
+//                continue;
+//            }
+//            String POIName = "";
+//            int similarity = Integer.MIN_VALUE;
+//            //判断当前文字识别信息是否与某个POI名称相同(找出相似度最高的POI)
+//            for(String floorPlanPOIName:floorPlanMap.keySet()){
+//                String modifyFloorPlanPOIName = Constant.removeIllegalAlphabet(floorPlanPOIName);
+//                String modifyTextDetection = Constant.removeIllegalAlphabet(elements[5]);
+//                int value = Constant.calculateStringDistance(modifyFloorPlanPOIName,modifyTextDetection);
+//                if(value > similarity){
+//                    similarity = value;
+//                    POIName = floorPlanPOIName;
+//                }
+//            }
+//            if(similarity > SIMILARITY_THRESHOLD) {
+//                double left = Double.parseDouble(elements[1]);
+//                double right = Double.parseDouble(elements[3]);
+//                double top = Double.parseDouble(elements[2]);
+//                double bottom = Double.parseDouble(elements[4]);
+//                String timeStamp = elements[0];
+//                double centerDis = calCenterDis(previewWidth, left, right);
+//                //小于阈值的文本框进行判断 减少误判
+//                if(centerDis < Constant.CENTOR_DIS_THRESHOLD){
+//                    if (!textDetectionInfoMap.containsKey(POIName)) {
+//                        TextDetectionAndPoi textDetectionAndPoi = new TextDetectionAndPoi();
+//                        textDetectionAndPoi.timeStampList = new ArrayList<>();
+//                        textDetectionAndPoi.timeStampList.add(timeStamp);
+//                        textDetectionAndPoi.timeStamp = timeStamp;
+//                        textDetectionAndPoi.centerDis = centerDis;
+//                        textDetectionInfoMap.put(POIName, textDetectionAndPoi);
+//                        //存入POI数量hash表中
+//                        POIDetectionNumMap.put(POIName, 1);
+//                    } else {
+//                        TextDetectionAndPoi textDetectionAndPoi = textDetectionInfoMap.get(POIName);
+//                        textDetectionAndPoi.timeStampList.add(timeStamp);
+//                        if (centerDis < textDetectionAndPoi.centerDis) {
+//                            textDetectionAndPoi.timeStamp = timeStamp;
+//                            textDetectionAndPoi.centerDis = centerDis;
+//                        }
+//                    }
+//                }
+//            }
+//        }
+    }
+    //计算文本识别框的面积
+    public static double calcalateArea(TextDetectionInfo textDetectionInfo){
+        double left = textDetectionInfo.left;
+        double right = textDetectionInfo.right;
+        double top = textDetectionInfo.top;
+        double bottom = textDetectionInfo.bottom;
+        return (right - left)*(bottom - top);
     }
 
     //计算文字识别框的中心与相机预览窗口中心的距离
