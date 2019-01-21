@@ -520,6 +520,14 @@ public class FileUtil {
 	}
 
 	/**
+	 * 只保存ori传感器的定位结果
+	 */
+	public static void saveOriLocationResult(Context context,Double[] answer){
+		saveSpFloat(context,"answerX",Float.parseFloat(String.valueOf(answer[0])));
+		saveSpFloat(context,"answerY",Float.parseFloat(String.valueOf(answer[1])));
+	}
+
+	/**
 	 * 按行读取txt
 	 *
 	 * @param context

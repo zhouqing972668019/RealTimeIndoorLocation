@@ -24,6 +24,7 @@ import com.zhouqing.chatproject.realtimeindoorlocation.model.StandardLocationInf
 import com.zhouqing.chatproject.realtimeindoorlocation.model.TextDetectionAndPoi;
 import com.zhouqing.chatproject.realtimeindoorlocation.service.SensorRecordService;
 import com.zhouqing.chatproject.realtimeindoorlocation.text_detection.TextRecognitionProcessor;
+import com.zhouqing.chatproject.realtimeindoorlocation.util.Calculation2POIUtil;
 import com.zhouqing.chatproject.realtimeindoorlocation.util.Constant;
 import com.zhouqing.chatproject.realtimeindoorlocation.util.FileUtil;
 import com.zhouqing.chatproject.realtimeindoorlocation.util.LocationInfoUtil;
@@ -366,6 +367,18 @@ public class CameraActivity extends AppCompatActivity {
                 showInfoSB.append("startAngle:").append(startAngle);
                 resultSB.append("startAngle:").append(startAngle).append("\n");
                 showInfo = showInfoSB.toString();
+            }
+            //POI个数为2
+            else if(textDetectionInfoMap.size() == 2){
+                float startAngle = FileUtil.getSPFloat(CameraActivity.this,"startAngle");
+                if(startAngle != 0f){
+                    StandardLocationInfo answerInfo = Calculation2POIUtil.getLocaionBy2Points(startAngle,textDetectionInfoMap,floorPlanMap);
+                    Double[] answer = {answerInfo.getX(), answerInfo.getY()};
+                    resultSB.append("answer(ori):"+answer[0]+","+answer[1]);
+                    FileUtil.saveOriLocationResult(CameraActivity.this,answer);
+                    FileUtil.savePOINames(CameraActivity.this,textDetectionInfoMap);
+                    showInfo = "answer(ori):"+answer[0]+","+answer[1];
+                }
             }
             else{
                 showInfo = "Lack of POIs to locate!";

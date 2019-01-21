@@ -223,6 +223,7 @@ public class ShowResultActivity extends AppCompatActivity {
                 p.setTextSize(20);
                 Coordinate centerLocation = getShopCenterLocation(coordinates);
                 canvas.drawText(shopName, centerLocation.x, centerLocation.y, p);
+                System.out.println("test:"+shopName+","+centerLocation.x+","+centerLocation.y);
             }
 
             if(locAnswer != null){
