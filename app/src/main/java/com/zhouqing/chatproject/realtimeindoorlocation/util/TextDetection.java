@@ -1,8 +1,6 @@
 
 package com.zhouqing.chatproject.realtimeindoorlocation.util;
 
-import android.util.Log;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,8 +10,26 @@ public class TextDetection {
         return (!Double.isInfinite(d) && !Double.isNaN(d));
     }
 
+    public static void drawCircle(double x, double y, double r){
+        double a=20d, b=200d;
+
+        double rw = r * a *2d;
+        double x1 = x * a +b - r * a;
+        double y1 = y * a +b - r * a;
+
+
+//        fileCommon.g.drawLine((int)(b-a), (int)(b-a), (int)(b+a), (int)(b-a));
+//        fileCommon.g.drawLine( (int)(b+a), (int)(b+a), (int)(b-a), (int)(b+a));
+//        fileCommon.g.drawLine(0, (int)b, 1000, (int)b);
+//        fileCommon.g.drawLine( (int)b, 0,(int)b, 1000);
+
+//        fileCommon.g.drawOval((int)x1, (int)y1, (int)rw, (int)rw);
+
+//        System.out.println("draw"+x1 + " " + y1 + " " + rw);
+    }
+
     public static boolean lineCross(Double[] a, Double[] b, Double[] c, Double[] d) {
-        if(!(Math.min(a[0],b[0])<=Math.max(c[0],d[0]) && Math.min(c[1],d[1])<=Math.max(a[1],b[1])&&Math.min(c[0],d[0])<=Math.max(a[0],b[0]) && Math.min(a[1],b[1])<=Math.max(c[1],d[1])))//这里的确如此，这一步是判定两矩形是否相交
+        if(!(Math.min(a[0],b[0])<= Math.max(c[0],d[0]) && Math.min(c[1],d[1])<= Math.max(a[1],b[1])&& Math.min(c[0],d[0])<= Math.max(a[0],b[0]) && Math.min(a[1],b[1])<= Math.max(c[1],d[1])))//这里的确如此，这一步是判定两矩形是否相交
             //1.线段ab的低点低于cd的最高点（可能重合） 2.cd的最左端小于ab的最右端（可能重合）
             //3.cd的最低点低于ab的最高点（加上条件1，两线段在竖直方向上重合） 4.ab的最左端小于cd的最右端（加上条件2，两直线在水平方向上重合）
             //综上4个条件，两条线段组成的矩形是重合的
@@ -33,90 +49,59 @@ public class TextDetection {
     }
 
     private static final String TAG = "TextDetection";
-
-    public static Double[] cal_corrdinate(List<Double> anglelist0, List<Double[]> corrdinatelist, List<Integer> direction) {
-        if(corrdinatelist.size()<3) {
+    public static Double[] cal_corrdinate(List<Double> anglelist0, List<Double[]> corrdinatelistall, List<Integer> direction) {
+        if(corrdinatelistall.size()<3) {
             System.out.println("ERROR: Not enough POIs!");
             return null;
 
         } else
 //        image = imread(Constant.INITIAL_INDOOR_PHOTO_PATH + "initialization.jpg");
 
-        if(corrdinatelist.size()==3) {
-            Double[] answer = work( anglelist0, corrdinatelist, direction);
-//            circle(image,new Point(answer[0], answer[1]),5,new Scalar(0xFF,0x00,0x00),-1,8,0);   //设置为-1时，画实心圆
+            if(corrdinatelistall.size()==3) {
+                Double[] answer = work( anglelist0, corrdinatelistall, direction);
+//            fileCommon.g.setColor(Color.BLUE);
+                drawCircle(answer[0], answer[1],0.2);
 //            imwrite(Constant.INITIAL_INDOOR_PHOTO_PATH + "finalResult.jpg",image);
-            return answer;
-        } else {
-            final int numOfPois = corrdinatelist.size();
-            double diffp[][]=new double[numOfPois][numOfPois];
-            Double answers[][]=new Double[numOfPois][2];
-            //构建虚拟坐标点表 店中心的位置
-
-            //四个坐标点的情况:依次去除一个坐标点, 重复四次
-            Double[] answer={0d, 0d};
-            for (int j = 0; j < corrdinatelist.size(); j++) {
-                Double[] point2 = corrdinatelist.get(j);
-
-                //去除坐标点
-                corrdinatelist.remove(j);
-
-                double firstangle=0d;
-                List<Double> anglelist1 = new ArrayList<>();
-                for(int j0=0;j0<corrdinatelist.size();++j0){
-                    double angle = corrdinatelist.get(j0)[2];
-                    if (firstangle!=0.0) {
-                        double diffangle = angle - firstangle;
-                        if (diffangle < 0.0) diffangle += 360.0;
-                        anglelist1.add(diffangle);
-                    }
-                    firstangle = angle;
-                }
-
-
-                    Double[] d = cal_corrdinate(anglelist1, corrdinatelist,  direction );
-                    if(d==null){
-                        Log.e(TAG,"nullpointer received in calcorrdinate");
-                        return new Double[]{0d,0d};
-                    }
-                    answer[0]+=d[0];
-                    answer[1]+=d[1];
-                if(corrdinatelist.size()==3){
-                    findDiff(anglelist0, corrdinatelist, direction, answers, diffp, j );
-                }
-
-                //复原虚拟坐标点表
-                corrdinatelist.add(j,point2);
-
-
-            }
-            if(corrdinatelist.size()>4) {
-                answer[0] /= corrdinatelist.size();
-                answer[1] /= corrdinatelist.size();
-//                TextDetection3.drawCircle(answer[0], answer[1], 0.1, g);
-
-
-                List<Double> anglelist2 = new ArrayList<>();
-                double firstangle=0d;
-                for(int j0=0;j0<corrdinatelist.size();++j0){
-                    Double[] point = corrdinatelist.get(j0);
-                    double diffx = point[0] - answer[0];
-                    double diffy = point[1] - answer[1];
-                    double angle = Math.toDegrees(Math.atan(diffy / diffx));
-                    if (diffx < 0) angle += 180;
-                    if (diffy < 0 && diffx > 0) angle += 360;
-                    if (firstangle!=0.0) {
-                        double diffangle = -angle + firstangle;
-                        if (diffangle < 0.0) diffangle += 360.0;
-                        anglelist2.add(diffangle);
-                    }
-                    firstangle = angle;
-                }
-                System.out.println(anglelist2);
-
-
                 return answer;
-            }
+            } else {
+                final int numOfPois = corrdinatelistall.size();
+                double diffp[][]=new double[numOfPois][numOfPois];
+                double diffp2[]=new double[numOfPois];
+                ArrayList<Double[]> answers = new ArrayList<>();
+                ArrayList<Double> answerweight = new ArrayList<>();
+                //构建虚拟坐标点表 店中心的位置
+
+                //四个坐标点的情况:依次去除一个坐标点, 重复四次
+                Double[] answer={0d, 0d};
+                for (int j1 = 0; j1 < corrdinatelistall.size()-2; j1++) {
+                    for (int j2 = j1+1; j2 < corrdinatelistall.size()-1; j2++) {
+                        for (int j3 = j2 + 1; j3 < corrdinatelistall.size(); j3++) {
+                            ArrayList<Double[]> corrdinatelist2 = new ArrayList<>();
+                            corrdinatelist2.add(corrdinatelistall.get(j1));
+                            corrdinatelist2.add(corrdinatelistall.get(j2));
+                            corrdinatelist2.add(corrdinatelistall.get(j3));
+
+                            double firstangle = 0d;
+                            List<Double> anglelist1 = new ArrayList<>();
+                            for (int j0 = 0; j0 < corrdinatelist2.size(); ++j0) {
+                                double angle = corrdinatelist2.get(j0)[2];
+                                if (firstangle != 0.0) {
+                                    double diffangle = angle - firstangle;
+                                    if (diffangle < 0.0) diffangle += 360.0;
+                                    anglelist1.add(diffangle);
+                                }
+                                firstangle = angle;
+                            }
+
+
+                            findDiff(anglelist1, corrdinatelist2, direction, answers,answerweight, diffp);
+
+                            //复原虚拟坐标点表
+
+                        }
+                    }
+
+                }
 /*
             //综合四个点: 显示一个普通平均值 颜色:粉色
             double dx0=0.0, dy0=0.0, da0=0.0;
@@ -129,98 +114,88 @@ public class TextDetection {
             dx0/=da0;
             dy0/=da0;
 */
-            //显示加权平均值 颜色:红色
-            double dx=0.0, dy=0.0, da=0.0;
-            for(int j=0;j<corrdinatelist.size();++j){
-                System.out.println(answers[j][0] + " " + answers[j][1]);
-                if(answers[j]==null || !(isFinite(answers[j][0])) || !(isFinite(answers[j][1]))) continue;
-                double ds = 0;
-                for(int kk = 0; kk < corrdinatelist.size(); ++kk) {
-                    if(isFinite(diffp[j][kk])) {
-                        ds += diffp[j][kk];
-                    }
+                //显示加权平均值 颜色:红色
+                double dx=0.0, dy=0.0, da=0.0;
+                for(int j=0;j<corrdinatelistall.size();++j){
+                    //    System.out.println(answers[j][0] + " " + answers[j][1]);
+                    Double[] temp = answers.get(j);
+                    if(temp==null || !(isFinite(temp[0])) || !(isFinite(temp[1]))) continue;
+                    dx+=temp[0]*answerweight.get(j);
+                    dy+=temp[1]*answerweight.get(j);
+                    da+=answerweight.get(j);
                 }
-                dx+=answers[j][0]*ds;
-                dy+=answers[j][1]*ds;
-                da+=ds;
-            }
 //            System.out.println(da + ",da " + dx + ",dx " + dy);
-            dx/=da;
-            dy/=da;
+                dx/=da;
+                dy/=da;
 //            TextDetection3.drawCircle(dx, dy, 0.1, g);
-            double olddx=dx, olddy=dy;
+                double olddx=dx, olddy=dy;
 //            g.setColor(Color.BLACK);
 //            TextDetection3.drawCircle(dx,dy, 0.1, g);
 //            g.setColor(Color.RED);
 //不知道要不要加:相当于将基准点从"加权平均值"移动到"普通平均值"
 
 
-            //两两比较三点定位的结果,计算偏转向量
-            for(int j=0;j<corrdinatelist.size();++j){
-                if(answers[j]==null || !(isFinite(answers[j][0])) || !(isFinite(answers[j][1]))) continue;
-                for(int j1=0;j1<corrdinatelist.size();++j1){//双方被去掉的点既是对方的弱点
-                    if(answers[j1]==null || !(isFinite(answers[j1][0])) || !(isFinite(answers[j1][1]))) continue;
-                    if(j==j1)continue;
-                    double diff1=diffp[j1][j];//去掉j1后 j的不确定度 也就是第j1组中第j个点
-                    double diff2=diffp[j][j1];
-//                            double mid = -(1/diff1-1/diff2)/(1/diff1+1/diff2)/8;
-                    double mid = (diff1-diff2)/(diff1+diff2)/8;
-                    if(!(isFinite(mid))) continue;
-                    dx+=(answers[j][0]-answers[j1][0])*mid;
-                    dy+=(answers[j][1]-answers[j1][1])*mid;
-//                    System.out.println(dx + ",dx " + dy);
-                }
-            }
-            //最早的定位方法:"反向加权"加偏转向量
+                //两两比较三点定位的结果,计算偏转向量
+//            for(int j=0;j<corrdinatelistall.size();++j){
+//                if(answers[j]==null || !(isFinite(answers[j][0])) || !(isFinite(answers[j][1]))) continue;
+//                for(int j1=0;j1<corrdinatelistall.size();++j1){//双方被去掉的点既是对方的弱点
+//                    if(answers[j1]==null || !(isFinite(answers[j1][0])) || !(isFinite(answers[j1][1]))) continue;
+//                    if(j==j1)continue;
+//                    double diff1=diffp[j1][j];//去掉j1后 j的不确定度 也就是第j1组中第j个点
+//                    double diff2=diffp[j][j1];
+////                            double mid = -(1/diff1-1/diff2)/(1/diff1+1/diff2)/8;
+//                    double mid = (diff1-diff2)/(diff1+diff2)/8;
+//                    if(!(isFinite(mid))) continue;
+//                    dx+=(answers[j][0]-answers[j1][0])*mid;
+//                    dy+=(answers[j][1]-answers[j1][1])*mid;
+////                    System.out.println(dx + ",dx " + dy);
+//                }
+//            }
+                //最早的定位方法:"反向加权"加偏转向量
 //            circle(image,new Point(dx, dy),5,new Scalar(0xFF,0x00,0x00),-1,8,0);   //设置为-1时，画实心圆
 //            imwrite(Constant.INITIAL_INDOOR_PHOTO_PATH + "finalResult.jpg",image);
 //            TextDetection3.drawCircle(dx, dy, 0.1, g);
 //            TextDetection3.drawLine(dx, dy, olddx,olddy, g);
-            return new Double[]{dx,dy};
+//            fileCommon.g.setColor(Color.BLUE);
+                drawCircle(dx,dy, 0.1);
+                drawCircle(dx,dy,0.1*corrdinatelistall.size());
+                System.out.println("ans:" + dx+" "+dy);
+                return new Double[]{dx,dy};
 
-        }
+            }
     }
-    private static void findDiff(List<Double> anglelist0, List<Double[]> corrdinatelist, List<Integer> direction, Double[][] answers, double[][] diffp, int j ){
+    private static void findDiff(List<Double> anglelist0, List<Double[]> corrdinatelist, List<Integer> direction, List<Double[]> answers, List<Double> answersweight, double[][] diffp){
         //构建夹角表:复制并合并一个夹角
-        final ArrayList<Double> anglelist = new ArrayList<>();
-        double oldangle = 0.0;
-        if(j==0){
-            for (int k = 1; k < anglelist0.size(); k++) {
-                anglelist.add(anglelist0.get(k));
-            }
-        } else {
-            for (int k = 0; k < anglelist0.size(); k++) {
-                oldangle += anglelist0.get(k);
-                if (k != j - 1) {
-                    anglelist.add(oldangle);
-                    oldangle = 0.0;
-                }
-            }
-        }
 
-                //对(三个点中)每个点旋转一周,计算误差
-                answers[j] = work(anglelist,corrdinatelist,  direction);
-                if(answers[j]!=null) {
+        //对(三个点中)每个点旋转一周,计算误差
+        Double[] temp = work(anglelist0,corrdinatelist,  direction);
+        answers.add(temp);
+        double sum=0d;
+        int count=0;
+
+        if(temp!=null && isFinite(temp[0]) && isFinite(temp[1]) ){
 //                circle(image,new Point(answers[j][0], answers[j][1]),5,new Scalar(0x66,0xCC,0xFF),-1,8,0);   //设置为-1时，画实心圆
-                    for (int j1 = 0; j1 < corrdinatelist.size(); j1++) {
-                        double maxdiff = 0;
-                        for (int j2 = 0; j2 < 100; ++j2) {
-                            ArrayList<Double[]> corrdinatelist2 = new ArrayList<>();
-                            for (Double[] point : corrdinatelist) {
-                                corrdinatelist2.add(new Double[]{point[0], point[1]});
-                            }
-                            double angle = Math.PI * j2 / 50;
-                            corrdinatelist2.get(j1)[0] += Math.cos(angle);
-                            corrdinatelist2.get(j1)[1] += Math.sin(angle);
-                            Double[] answer = work(anglelist, corrdinatelist2, direction);
-                            if (answer != null) {
-                                double difflength = dis(answers[j], answer);
-                                maxdiff = Math.max(maxdiff, difflength);
-                            }
-                        }
-                        diffp[j][(j1 < j ? j1 : j1 + 1)] = maxdiff;
+            for (int j1 = 0; j1 < corrdinatelist.size(); j1++) {
+                double maxdiff = 0;
+                for (int j2 = 0; j2 < 100; ++j2) {
+                    ArrayList<Double[]> corrdinatelist2 = new ArrayList<>();
+                    for (Double[] point : corrdinatelist) {
+                        corrdinatelist2.add(new Double[]{point[0], point[1]});
+                    }
+                    double angle = Math.PI * j2 / 50;
+                    corrdinatelist2.get(j1)[0] += Math.cos(angle);
+                    corrdinatelist2.get(j1)[1] += Math.sin(angle);
+                    Double[] answer = work(anglelist0, corrdinatelist2, direction);
+                    if (answer != null && isFinite(answer[0]) && isFinite(answer[1])) {
+                        double difflength = dis(temp, answer);
+                        maxdiff = Math.max(maxdiff, difflength);
+                        count+=1;
                     }
                 }
+                sum+= maxdiff;
+            }
+        }
+        answersweight.add(sum/count);
 
 
     }
@@ -300,11 +275,10 @@ public class TextDetection {
             if(!(isFinite(circle[0]) && isFinite(circle[1]) && isFinite(circle[2]))) {
                 System.out.println("circle cannot be drawn at cal_corrdinate > work : ");
                 for (int i = 0; i < 3; i++) {
-                    System.out.println("corrdinate: " + corrdinatelist.get(poi)[0] + " " + corrdinatelist.get(poi)[1]);
+                    //        System.out.println("corrdinate: " + corrdinatelist.get(poi)[0] + " " + corrdinatelist.get(poi)[1]);
                 }
                 return null;
             }
-//            drawCircle(circle[0], circle[1], circle[2], g);
         }
 
         //两两相交求出焦点
@@ -405,7 +379,6 @@ public class TextDetection {
 
 
     public static void main(String[] args){
-
         ArrayList<Double[]> truecorrdinatelist = new ArrayList<>();
         Double[] location3 = {1122d, 910d, 135.53};
         truecorrdinatelist.add(location3);//DIOR
@@ -419,6 +392,10 @@ public class TextDetection {
         truecorrdinatelist.add(location1);//SONY
         Double[] location7 = {505d, 912.5d, 63.3};
         truecorrdinatelist.add(location7);//UGG
+
+        mainWork(truecorrdinatelist);
+    }
+    public static void mainWork(ArrayList<Double[]> truecorrdinatelist){
 
         final List<Integer> direction = new ArrayList<>();
         for (int i = 0; i < truecorrdinatelist.size(); i++) {
@@ -451,7 +428,7 @@ public class TextDetection {
             }
             firstangle = angle;
         }
-        System.out.println(anglelist0);
+        System.out.println("0:"+anglelist0);
         anglelist0.clear();
 
         firstangle=0d;
@@ -470,7 +447,7 @@ public class TextDetection {
             }
             firstangle = angle;
         }
-        System.out.println(anglelist0);
+        System.out.println("1:"+anglelist0);
 
 
         Double[] d = cal_corrdinate(anglelist0, newcorrdinatelist,  direction);
@@ -482,7 +459,8 @@ public class TextDetection {
         {
             System.out.println(t[0] + " " + t[1] + " " + t[2]);
         }
-                    System.out.println(d[0] + " " +d[1]);
+        if(d==null) return;
+        System.out.println(d[0] + " " +d[1]);
         anglelist0.clear();
         truth = d;
         firstangle=0d;
@@ -500,7 +478,7 @@ public class TextDetection {
             }
             firstangle = angle;
         }
-        System.out.println(anglelist0);
+        System.out.println("2:"+anglelist0);
 
 //        newcorrdinatelist.remove(2);
 //                }
