@@ -156,7 +156,7 @@ public class FileUtil {
 	//将指定字符串写入文件
 	public static void writeStrToFile(String fileContent)
 	{
-		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH_mm_ss");//设置日期格式
 		String outputFileName="输出结果："+df.format(new Date());// new Date()为获取当前系统时间
 		if (!new File(Constant.OUTPUT_FILE_PATH).exists()) {
 			new File(Constant.OUTPUT_FILE_PATH).mkdirs();
@@ -296,6 +296,8 @@ public class FileUtil {
 		return dir.delete();
 	}
 
+
+
 	//bitmap转成文件存储用于拍照或者相册选取的时候
 	public static void saveImageByBitmap(Bitmap bmp, String path, String fileName) {
 		File appDir = new File(path);
@@ -326,8 +328,8 @@ public class FileUtil {
 				JSONObject object = new JSONObject();
 				StandardLocationInfo standardLocationInfo = locationInfoHashMap.get(key);
 				object.put("name", key);
-                object.put("x", standardLocationInfo.getX()+"");
-                object.put("y", standardLocationInfo.getY()+"");
+				object.put("x", standardLocationInfo.getX()+"");
+				object.put("y", standardLocationInfo.getY()+"");
 				mJsonArray.put(object);
 			} catch (JSONException e) {
 
@@ -349,11 +351,11 @@ public class FileUtil {
 			JSONArray array = new JSONArray(result);
 			for (int i = 0; i < array.length(); i++) {
 				JSONObject itemObject = array.getJSONObject(i);
-                String name = itemObject.getString("name");
-                double x = Double.parseDouble(itemObject.getString("x"));
-                double y = Double.parseDouble(itemObject.getString("y"));
-                StandardLocationInfo standardLocationInfo = new StandardLocationInfo(x,y);
-                data.put(name,standardLocationInfo);
+				String name = itemObject.getString("name");
+				double x = Double.parseDouble(itemObject.getString("x"));
+				double y = Double.parseDouble(itemObject.getString("y"));
+				StandardLocationInfo standardLocationInfo = new StandardLocationInfo(x,y);
+				data.put(name,standardLocationInfo);
 			}
 		} catch (JSONException e) {
 
@@ -389,32 +391,32 @@ public class FileUtil {
 		return sp.getFloat(name,0f);
 	}
 
-    /**
-     * 保存定位时用到的POI的名称
-     * @param context
-     * @param textDetectionInfoMap
-     */
-    public static void savePOINames(Context context, Map<String, TextDetectionAndPoi> textDetectionInfoMap){
-        SharedPreferences sp = context.getSharedPreferences(SPNAME, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sp.edit();
-        StringBuilder sb = new StringBuilder();
-        for(String POIName: textDetectionInfoMap.keySet()){
-            sb.append(POIName).append(",");
-        }
-        String POINames = sb.toString();
-        editor.putString("POINames",POINames.substring(0,POINames.length()-1));
-        editor.commit();
-    }
+	/**
+	 * 保存定位时用到的POI的名称
+	 * @param context
+	 * @param textDetectionInfoMap
+	 */
+	public static void savePOINames(Context context, Map<String, TextDetectionAndPoi> textDetectionInfoMap){
+		SharedPreferences sp = context.getSharedPreferences(SPNAME, Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = sp.edit();
+		StringBuilder sb = new StringBuilder();
+		for(String POIName: textDetectionInfoMap.keySet()){
+			sb.append(POIName).append(",");
+		}
+		String POINames = sb.toString();
+		editor.putString("POINames",POINames.substring(0,POINames.length()-1));
+		editor.commit();
+	}
 
-    public static List<String> getPOINames(Context context){
-        SharedPreferences sp = context.getSharedPreferences(SPNAME, Context.MODE_PRIVATE);
-        List<String> POINameList = new ArrayList<>();
-        String POINames = sp.getString("POINames","");
-        for(String POIName:POINames.split(",")){
-            POINameList.add(POIName);
-        }
-        return POINameList;
-    }
+	public static List<String> getPOINames(Context context){
+		SharedPreferences sp = context.getSharedPreferences(SPNAME, Context.MODE_PRIVATE);
+		List<String> POINameList = new ArrayList<>();
+		String POINames = sp.getString("POINames","");
+		for(String POIName:POINames.split(",")){
+			POINameList.add(POIName);
+		}
+		return POINameList;
+	}
 
 	//判断文件是否存在
 	public static boolean fileIsExists(String strFile)
@@ -515,6 +517,14 @@ public class FileUtil {
 		saveSpFloat(context,"mag_acc_answerY",Float.parseFloat(String.valueOf(mag_acc_answer[1])));
 		saveSpFloat(context,"complex_gyro_answerX",Float.parseFloat(String.valueOf(complex_gyro_answer[0])));
 		saveSpFloat(context,"complex_gyro_answerY",Float.parseFloat(String.valueOf(complex_gyro_answer[1])));
+	}
+
+	/**
+	 * 只保存ori传感器的定位结果
+	 */
+	public static void saveOriLocationResult(Context context,Double[] answer){
+		saveSpFloat(context,"answerX",Float.parseFloat(String.valueOf(answer[0])));
+		saveSpFloat(context,"answerY",Float.parseFloat(String.valueOf(answer[1])));
 	}
 
 	/**
