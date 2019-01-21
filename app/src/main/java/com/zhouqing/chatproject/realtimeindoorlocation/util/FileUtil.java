@@ -469,7 +469,7 @@ public class FileUtil {
 		List<String> folderList = new ArrayList<>();
 		File f = new File(path);
 		if (!f.exists()) {
-			return null;
+			f.mkdirs();
 		}
 		File fa[] = f.listFiles();
 		for (int i = 0; i < fa.length; i++) {

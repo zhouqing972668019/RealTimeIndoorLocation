@@ -335,14 +335,27 @@ public class ShowResultActivity extends AppCompatActivity {
             double canvasRate = (double)width / (double)height;
             double floorPlanRate = (double)maxX / (double)maxY;
             double scaleRate = (double)width / (double)maxX;
+            boolean isScaleWidth = true;
+            double offset = 0d;
             if(canvasRate>floorPlanRate){
                 scaleRate = (double)height / (double)maxY;
+                isScaleWidth = false;
+                offset = (width/2d) - maxX*scaleRate/2d;
+            }
+            else{
+                offset = (height/2d) - maxY*scaleRate/2d;
             }
             for(String shopName: shapeMap.keySet()){
                 List<Coordinate> coordinates = shapeMap.get(shopName);
                 for(Coordinate coordinate:coordinates){
                     coordinate.x = (float)(coordinate.x * scaleRate + Constant.MARGIN);
                     coordinate.y = canvasHeight - (float)(coordinate.y * scaleRate + Constant.MARGIN);
+                    if(isScaleWidth){
+                        coordinate.y -= offset;
+                    }
+                    else{
+                        coordinate.x += offset;
+                    }
                 }
             }
             for(String shopName: locationMap.keySet()){
@@ -350,11 +363,23 @@ public class ShowResultActivity extends AppCompatActivity {
                 for(Coordinate coordinate:coordinates){
                     coordinate.x = (float)(coordinate.x * scaleRate + Constant.MARGIN);
                     coordinate.y = canvasHeight - (float)(coordinate.y * scaleRate + Constant.MARGIN);
+                    if(isScaleWidth){
+                        coordinate.y -= offset;
+                    }
+                    else{
+                        coordinate.x += offset;
+                    }
                 }
             }
             if(locAnswer != null){
                 locAnswer.x = (float) (locAnswer.x * scaleRate + Constant.MARGIN);
                 locAnswer.y = canvasHeight - (float)(locAnswer.y * scaleRate + Constant.MARGIN);
+                if(isScaleWidth){
+                    locAnswer.y -= offset;
+                }
+                else{
+                    locAnswer.x += offset;
+                }
             }
 
             System.out.println("locationMap:"+locationMap.toString());

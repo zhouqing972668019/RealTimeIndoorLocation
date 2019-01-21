@@ -315,6 +315,9 @@ public class LocationInfoUtil {
                 int similarity = Integer.MIN_VALUE;
                 //判断当前文字识别信息是否与某个POI名称相同(找出相似度最高的POI)
                 for(String floorPlanPOIName:floorPlanMap.keySet()){
+                    if(Constant.isContainChinese(floorPlanPOIName)){
+                        continue;
+                    }
                     String modifyFloorPlanPOIName = Constant.removeIllegalAlphabet(floorPlanPOIName);
                     String modifyTextDetection = Constant.removeIllegalAlphabet(textDetectionInfo.textContent);
                     int value = Constant.calculateStringDistance(modifyFloorPlanPOIName,modifyTextDetection);
