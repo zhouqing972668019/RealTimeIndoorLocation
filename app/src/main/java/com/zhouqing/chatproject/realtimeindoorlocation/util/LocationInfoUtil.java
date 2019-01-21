@@ -221,19 +221,7 @@ public class LocationInfoUtil {
 //            }
 //        }
 //    }
-    //判断两个文本是否相邻
-    public static boolean isAdjacent(TextDetectionInfo curInfo,TextDetectionInfo nextInfo){
-        if(Math.abs(curInfo.top - nextInfo.top) >= Constant.ADJACENT_THRESHOLD){
-            return false;
-        }
-        if(curInfo.left > nextInfo.left){
-            TextDetectionInfo t = curInfo;
-            curInfo = nextInfo;
-            nextInfo = t;
-        }
-        double singleDis = (curInfo.right - curInfo.left)/curInfo.textContent.length();
-        return (nextInfo.left - curInfo.right) <= singleDis;
-    }
+
     //对识别的文本内容进行分析 合并左右相邻的文本
     public static void processTextDetectionInfo(List<String> textDetectionList,List<TextDetectionInfo> resultList){
         //System.out.println("process before:"+textDetectionList.toString());
@@ -279,6 +267,20 @@ public class LocationInfoUtil {
         //System.out.println("process after:"+textDetectionList.toString());
     }
 
+    //判断两个文本是否相邻
+    public static boolean isAdjacent(TextDetectionInfo curInfo,TextDetectionInfo nextInfo){
+        if(Math.abs(curInfo.top - nextInfo.top) >= Constant.ADJACENT_THRESHOLD){
+            return false;
+        }
+        if(curInfo.left > nextInfo.left){
+            TextDetectionInfo t = curInfo;
+            curInfo = nextInfo;
+            nextInfo = t;
+        }
+        double singleDis = (curInfo.right - curInfo.left)/curInfo.textContent.length();
+        return (nextInfo.left - curInfo.right) <= singleDis;
+    }
+
     //获取文字识别信息--只考虑出现一次的情况
     public static void getTextDetectionInfo(int previewWidth, Map<String, StandardLocationInfo> floorPlanMap, List<String> textDetectionList, Map<String, TextDetectionAndPoi> textDetectionInfoMap, Map<String, Integer> POIDetectionNumMap){
         List<TextDetectionInfo> resultList = new ArrayList<>();
@@ -313,6 +315,9 @@ public class LocationInfoUtil {
                 int similarity = Integer.MIN_VALUE;
                 //判断当前文字识别信息是否与某个POI名称相同(找出相似度最高的POI)
                 for(String floorPlanPOIName:floorPlanMap.keySet()){
+                    if(Constant.isContainChinese(floorPlanPOIName)){
+                        continue;
+                    }
                     String modifyFloorPlanPOIName = Constant.removeIllegalAlphabet(floorPlanPOIName);
                     String modifyTextDetection = Constant.removeIllegalAlphabet(textDetectionInfo.textContent);
                     int value = Constant.calculateStringDistance(modifyFloorPlanPOIName,modifyTextDetection);
@@ -405,7 +410,6 @@ public class LocationInfoUtil {
 //            }
 //        }
     }
-
     //计算文本识别框的面积
     public static double calcalateArea(TextDetectionInfo textDetectionInfo){
         double left = textDetectionInfo.left;
@@ -553,8 +557,8 @@ public class LocationInfoUtil {
         for(String POIName:textDetectionInfoMap.keySet()){
             TextDetectionAndPoi textDetectionAndPoi = textDetectionInfoMap.get(POIName);
             resultSB.append("POIName:"+POIName+",timeStamp:"+textDetectionAndPoi.timeStamp
-                    +",centerDis:"+textDetectionAndPoi.centerDis+",ori:"+textDetectionAndPoi.ori_angle+",mag_acc:"
-                    +textDetectionAndPoi.mag_acc_angle +",gyro:"+textDetectionAndPoi.gyro_ori_angle+"\n");
+                    +",ori:"+textDetectionAndPoi.ori_angle+",mag_acc:"+textDetectionAndPoi.mag_acc_angle
+                    +",gyro:"+textDetectionAndPoi.gyro_ori_angle+"\n");
         }
     }
 
@@ -598,7 +602,7 @@ public class LocationInfoUtil {
     //获取最新的采集数据
     public static void getRecentCollectionData(List<String> sensorInfoList,List<String> textDetectionInfoList) throws ParseException {
         List<String> folderList = FileUtil.getChildFolder(Constant.COLLECTION_DATA_PATH);
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH_mm_ss");//设置日期格式
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
         String resultFolder = folderList.get(0);
         Date resultDate = df.parse(resultFolder);
         if(folderList.size() > 1){
@@ -622,10 +626,10 @@ public class LocationInfoUtil {
             public int compare(String o1, String o2) {
                 String[] elements1 = o1.split("_");
                 String[] elements2 = o2.split("_");
-                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH_mm_ss");//设置日期格式
+                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
                 try {
-                    Date date1 = df.parse(o1.substring(elements1[0].length()+1));
-                    Date date2 = df.parse(o2.substring(elements2[0].length()+1));
+                    Date date1 = df.parse(elements1[1]);
+                    Date date2 = df.parse(elements2[1]);
                     if(date1.after(date2)){
                         return 1;
                     }
