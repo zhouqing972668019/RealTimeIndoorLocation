@@ -376,7 +376,7 @@ public class CameraActivity extends AppCompatActivity {
                     }).start();
                 }
                 showInfo = showInfoSB.toString();
-                Toast.makeText(CameraActivity.this, "定位成功！", Toast.LENGTH_SHORT).show();
+                Toast.makeText(CameraActivity.this, "Positioning success!", Toast.LENGTH_SHORT).show();
             }
             //POI个数为2
             else if(textDetectionInfoMap.size() == 2){
@@ -392,7 +392,7 @@ public class CameraActivity extends AppCompatActivity {
             }
             else{
                 showInfo = "Lack of POIs to locate!";
-                Toast.makeText(CameraActivity.this, "POI数量不足，定位失败！", Toast.LENGTH_SHORT).show();
+                Toast.makeText(CameraActivity.this, "POI is insufficient, positioning failure!", Toast.LENGTH_SHORT).show();
             }
 //            Intent intent = getIntent();
 //            intent.putExtra("showInfo",showInfo);

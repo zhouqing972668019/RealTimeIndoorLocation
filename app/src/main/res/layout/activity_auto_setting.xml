@@ -13,7 +13,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="选择商场及楼层"
+        android:text="Choose malls and floors"
         android:textSize="20sp"/>
 
     <Spinner
@@ -50,6 +50,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/btn_collection_data"
-        android:text="进入"/>
+        android:text="go"/>
 
 </LinearLayout>
