@@ -184,7 +184,9 @@ public class SensorRecordService extends Service implements SensorEventListener 
     // 通过磁力计读数与加速度读数计算朝向
     public void calculateAccMagOrientation(long timestamp) {
         if (SensorManager.getRotationMatrix(rotationMatrix, null, accel, magnet)) {
-            SensorManager.getOrientation(rotationMatrix, accMagOrientation);
+            float[] remapMatrix = new float[9];
+            SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_X, SensorManager.AXIS_Z, remapMatrix);
+            SensorManager.getOrientation(remapMatrix, accMagOrientation);
         }
         //构造结果存入文件
         float[] values = new float[3];
