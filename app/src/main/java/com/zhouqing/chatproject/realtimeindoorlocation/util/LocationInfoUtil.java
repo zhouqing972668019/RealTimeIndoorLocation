@@ -32,10 +32,18 @@ public class LocationInfoUtil {
                 oriMap.put(elements[1],Double.parseDouble(elements[2]));
             }
             else if(elements[0].equals(GYRO_ORI)){
-                gyroOriMap.put(elements[1],Double.parseDouble(elements[2]));
+                Double angle = Double.parseDouble(elements[2]);
+                if(angle < 0d){
+                    angle += 360d;
+                }
+                gyroOriMap.put(elements[1],angle);
             }
             else if(elements[0].equals(MAG_ACC_ORI)){
-                magAccOriMap.put(elements[1],Double.parseDouble(elements[2]));
+                Double angle = Double.parseDouble(elements[2]);
+                if(angle < 0d){
+                    angle += 360d;
+                }
+                magAccOriMap.put(elements[1],angle);
             }
         }
     }

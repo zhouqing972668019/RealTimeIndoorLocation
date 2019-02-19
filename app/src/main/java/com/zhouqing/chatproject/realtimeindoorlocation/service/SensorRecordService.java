@@ -70,6 +70,10 @@ public class SensorRecordService extends Service implements SensorEventListener 
         return instance;
     }
 
+    private boolean firstAccRecord = true;
+
+    private boolean firstMagRecord = true;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -156,7 +160,17 @@ public class SensorRecordService extends Service implements SensorEventListener 
             switch (sensorEvent.sensor.getType()) {
                 case Sensor.TYPE_ACCELEROMETER:
                     // copy new accelerometer data into accel array and calculate orientation
-                    System.arraycopy(sensorEvent.values, 0, accel, 0, 3);
+                    if(firstAccRecord){
+                        System.arraycopy(sensorEvent.values, 0, accel, 0, 3);
+                        firstAccRecord = false;
+                    }
+                    else{
+                        float[] calAccl = new float[3];
+                        for(int i=0;i<3;i++){
+                            calAccl[i] = accel[i] * Constant.SENSOR_ALPHA + (1-Constant.SENSOR_ALPHA)*sensorEvent.values[i];
+                        }
+                        System.arraycopy(calAccl,0,accel,0,3);
+                    }
                     calculateAccMagOrientation(currentTimeStamp);
                     Log.d(TAG, "accMagorientation:"+accMagOrientation[0]*180/Math.PI+","+
                             accMagOrientation[1]*180/Math.PI+accMagOrientation[2]*180/Math.PI);
@@ -170,8 +184,19 @@ public class SensorRecordService extends Service implements SensorEventListener 
                     break;
 
                 case Sensor.TYPE_MAGNETIC_FIELD:
+                    if(firstMagRecord){
+                        firstMagRecord = false;
+                        System.arraycopy(sensorEvent.values, 0, magnet, 0, 3);
+                    }
+                    else{
+                        float[] calMagnet = new float[3];
+                        for(int i=0;i<3;i++){
+                            calMagnet[i] = magnet[i] * Constant.SENSOR_ALPHA + (1-Constant.SENSOR_ALPHA)*sensorEvent.values[i];
+                        }
+                        System.arraycopy(calMagnet, 0, magnet, 0, 3);
+                    }
                     // copy new magnetometer data into magnet array
-                    System.arraycopy(sensorEvent.values, 0, magnet, 0, 3);
+
                     break;
 
                 case Sensor.TYPE_ORIENTATION:

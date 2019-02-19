@@ -64,6 +64,10 @@ public class Constant {
     public static final double[] WJ_LATLNG = {39.998656,116.47493};
     public static final double[] XD_LATLNG = {39.916967,116.379299};
 
+
+    //传感器平滑参数
+    public static final float SENSOR_ALPHA = 0.9f;
+
     /**
      * @brief 判断两个String字符串的相似程度（因为用户输入的字符可能和兴趣点的名字不能完全匹配）
      * 即计算两个字符串的距离

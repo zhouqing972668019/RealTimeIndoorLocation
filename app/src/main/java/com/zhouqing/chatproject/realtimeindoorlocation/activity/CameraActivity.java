@@ -349,7 +349,7 @@ public class CameraActivity extends AppCompatActivity {
                 System.out.println("mag_acc_answer:"+ Arrays.toString(mag_acc_answer));
                 System.out.println("complex_gyro_answer:"+Arrays.toString(complex_gyro_answer));
                 StringBuilder showInfoSB = new StringBuilder();
-                LocationInfoUtil.getLocationResult(showInfoSB,answer,textDetectionInfoMap,
+                LocationInfoUtil.getLocationResult(showInfoSB,mag_acc_answer,textDetectionInfoMap,
                         POINameList,angleList);
                 //保存定位结果信息 保存到文件
                 LocationInfoUtil.getResultPrintContentFinal(resultSB,answer,gyro_answer,mag_acc_answer,complex_gyro_answer,
