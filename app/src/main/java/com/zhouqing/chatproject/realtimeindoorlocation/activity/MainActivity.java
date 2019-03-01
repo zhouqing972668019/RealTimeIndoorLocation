@@ -1,6 +1,7 @@
 package com.zhouqing.chatproject.realtimeindoorlocation.activity;
 
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -8,6 +9,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.zhouqing.chatproject.realtimeindoorlocation.R;
+import com.zhouqing.chatproject.realtimeindoorlocation.util.Constant;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -33,6 +35,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnFloorPlanAuto.setOnClickListener(this);
         btnCollectionData.setOnClickListener(this);
         btnShowResult.setOnClickListener(this);
+
+        //第一个activity中创建图片资源
+        if(Constant.rightBitmap == null){
+            Constant.rightBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.right_arrow, null);
+        }
+        if(Constant.leftBitmap == null){
+            Constant.leftBitmap = BitmapFactory.decodeResource(getResources(),R.drawable.left_arrow,null);
+        }
+        if(Constant.centerBitmap == null){
+            Constant.centerBitmap = BitmapFactory.decodeResource(getResources(),R.drawable.center,null);
+        }
 
     }
 

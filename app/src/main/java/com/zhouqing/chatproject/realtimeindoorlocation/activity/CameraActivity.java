@@ -64,10 +64,12 @@ public class CameraActivity extends AppCompatActivity {
 
     //接收服务传过来的数据并显示
     private MyReceiver receiver=null;
+    private IntentFilter filter = null;
 
     private TextView tvMagAccOri;
-    private TextView tvGyroOri;
+    //private TextView tvGyroOri;
     private TextView tvOri;
+    private TextView tvPOINum;
 
     DecimalFormat d = new DecimalFormat("#.##");
 
@@ -77,13 +79,22 @@ public class CameraActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             Bundle bundle=intent.getExtras();
-            double angle = bundle.getDouble("angle");
-            double gyroAngle = bundle.getDouble("gyroAngle");
-            double accMagAngle = bundle.getDouble("accMagAngle");
+            Double angle = bundle.getDouble("angle");
+            //double gyroAngle = bundle.getDouble("gyroAngle");
+            Double accMagAngle = bundle.getDouble("accMagAngle");
+            Integer POINum = bundle.getInt("POINum");
             //Log.d(TAG, "onReceive->angle:"+angle);
-            tvOri.setText(d.format(angle) + "");
-            tvGyroOri.setText(d.format(gyroAngle) + "");
-            tvMagAccOri.setText(d.format(accMagAngle) + "");
+            if(angle != null){
+                tvOri.setText(d.format(angle) + "");
+            }
+            //tvGyroOri.setText(d.format(gyroAngle) + "");
+            if(accMagAngle != null){
+                tvMagAccOri.setText(d.format(accMagAngle) + "");
+            }
+            if(POINum != null && POINum != 0){
+                tvPOINum.setText(POINum+"");
+            }
+            System.out.println("POINum:"+POINum);
         }
     }
 
@@ -93,8 +104,9 @@ public class CameraActivity extends AppCompatActivity {
         setContentView(R.layout.activity_camera);
 
         tvOri = findViewById(R.id.tv_ori);
-        tvGyroOri = findViewById(R.id.tv_gyro_ori);
+        //tvGyroOri = findViewById(R.id.tv_gyro_ori);
         tvMagAccOri = findViewById(R.id.tv_mag_acc_ori);
+        tvPOINum = findViewById(R.id.tv_poi_num);
         //选择文件夹，直接定位
         spFolder = findViewById(R.id.sp_folder);
         folders = LocationInfoUtil.getFoldersByTimeDesc();
@@ -153,8 +165,8 @@ public class CameraActivity extends AppCompatActivity {
         startService(serviceIntent);
 
         receiver=new MyReceiver();
-        IntentFilter filter=new IntentFilter();
-        filter.addAction("com.zhouqing.chatproject.realtimeindoorlocation.service.SensorRecordService");
+        filter=new IntentFilter();
+        filter.addAction(Constant.BROADCASTRECEIVER_NAME);
         CameraActivity.this.registerReceiver(receiver,filter);
     }
 
@@ -175,7 +187,7 @@ public class CameraActivity extends AppCompatActivity {
         List<String> sensorInfoList = SensorRecordService.instance().stopLoggingAndReturnSensorInfo();
         List<String> textDetectionInfoList = textRecognitionProcessor.getTextDetectionInfoAll();
         //寻找文本识别区域
-        Constant.findAreaOfTextDetection(textDetectionInfoList);
+        //Constant.findAreaOfTextDetection(textDetectionInfoList);
         int shopSelection = FileUtil.getSPInt(CameraActivity.this,"shopSelection");
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH_mm_ss");//设置日期格式
         TIMESTAMP_PATH = Constant.SHOP_NAMES[shopSelection] + "_" + df.format(new Date())+"/";// new Date()为获取当前系统时间
@@ -203,6 +215,7 @@ public class CameraActivity extends AppCompatActivity {
         super.onResume();
         Log.d(TAG, "onResume");
         startCameraSource();
+
     }
 
     /** Stops the camera. */
@@ -210,6 +223,7 @@ public class CameraActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         preview.stop();
+
     }
 
     @Override
@@ -228,7 +242,7 @@ public class CameraActivity extends AppCompatActivity {
             cameraSource.setFacing(CameraSource.CAMERA_FACING_BACK);
         }
 
-        textRecognitionProcessor = new TextRecognitionProcessor();
+        textRecognitionProcessor = new TextRecognitionProcessor(FileUtil.getPOILocation(CameraActivity.this),CameraActivity.this);
         cameraSource.setMachineLearningFrameProcessor(textRecognitionProcessor);
     }
 
@@ -286,8 +300,9 @@ public class CameraActivity extends AppCompatActivity {
         }
         System.out.println("previewSizeWidth:" + previewWidth +"");
         Map<String, TextDetectionAndPoi> textDetectionInfoMap = new LinkedHashMap<>();
-        Map<String, Integer> POIDetectionNumMap = new LinkedHashMap<>();
-        LocationInfoUtil.getTextDetectionInfo(previewWidth,floorPlanMap,textDetectionList,textDetectionInfoMap, POIDetectionNumMap);
+        //Map<String, Integer> POIDetectionNumMap = new LinkedHashMap<>();
+//        LocationInfoUtil.getTextDetectionInfo(previewWidth,floorPlanMap,textDetectionList,textDetectionInfoMap, POIDetectionNumMap);
+        LocationInfoUtil.getTextDetectionInfo(textDetectionList,textDetectionInfoMap);
 //        System.out.println("POIDetectionNumMap:"+POIDetectionNumMap.toString());
         //为每一个POI添加角度信息
         for(String POIName:textDetectionInfoMap.keySet()){
@@ -295,6 +310,7 @@ public class CameraActivity extends AppCompatActivity {
             textDetectionAndPoi.ori_angle = LocationInfoUtil.getOriByTimeStamp(oriMap ,textDetectionAndPoi.timeStamp);
             textDetectionAndPoi.gyro_ori_angle = LocationInfoUtil.getOriByTimeStamp(gyroOriMap,textDetectionAndPoi.timeStamp);
             textDetectionAndPoi.mag_acc_angle = LocationInfoUtil.getOriByTimeStamp(magAccOriMap,textDetectionAndPoi.timeStamp);
+            //List<Double> mag_acc_angleList = LocationInfoUtil.getAngleByTimeStampList(magAccOriMap,textDetectionAndPoi.timeStampList);
         }
         System.out.println("textDetectionInfoMap:"+textDetectionInfoMap.toString());
 
@@ -304,7 +320,7 @@ public class CameraActivity extends AppCompatActivity {
 
         //判断有无重复的POI出现
         String showInfo = "";
-        if(!LocationInfoUtil.isPOINumMoreThanOne(POIDetectionNumMap)){//不额外处理 直接计算位置
+//        if(!LocationInfoUtil.isPOINumMoreThanOne(POIDetectionNumMap)){//不额外处理 直接计算位置
             if(textDetectionInfoMap.size() >= 3){
                 List<Double> angleList = new ArrayList<>();//方向传感器z轴读数
                 List<Double> gyroAngleList = new ArrayList<>();//校正的陀螺仪结果
@@ -403,11 +419,11 @@ public class CameraActivity extends AppCompatActivity {
             Intent intent = getIntent();
             intent.putExtra("showInfo",showInfo);
             setResult(RESULT_OK, intent);
-        }
-        //某个POI出现了多次 需要特殊处理
-        else{
-
-        }
+//        }
+//        //某个POI出现了多次 需要特殊处理
+//        else{
+//
+//        }
         this.finish();
     }
 }

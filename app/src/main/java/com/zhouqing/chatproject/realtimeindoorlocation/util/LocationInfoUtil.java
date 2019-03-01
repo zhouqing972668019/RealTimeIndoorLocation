@@ -102,6 +102,16 @@ public class LocationInfoUtil {
         return angle;
     }
 
+    //获取时间戳列表中每个时间戳前后的传感器信息
+    public static List<Double> getAngleByTimeStampList(Map<String,Double> oriMap,List<String> timeStampList){
+        List<Double> angleList = new ArrayList<>();
+        for(String timeStamp:timeStampList){
+            double angle = getOriByTimeStamp(oriMap,timeStamp);
+            angleList.add(angle);
+        }
+        return angleList;
+    }
+
     //获取文字识别信息--考虑同一名称POI出现多次的情况
 //    public static void getTextDetectionInfo(int previewWidth, Map<String, StandardLocationInfo> floorPlanMap, List<String> textDetectionList, Map<String, TextDetectionAndPoi> textDetectionInfoMap, Map<String, Integer> POIDetectionNumMap){
 //        boolean isFindPOI = false;
@@ -289,7 +299,7 @@ public class LocationInfoUtil {
         return (nextInfo.left - curInfo.right) <= singleDis;
     }
 
-    //获取文字识别信息--只考虑出现一次的情况
+    //获取文字识别信息--只考虑出现一次的情况(非实时版本)
     public static void getTextDetectionInfo(int previewWidth, Map<String, StandardLocationInfo> floorPlanMap, List<String> textDetectionList, Map<String, TextDetectionAndPoi> textDetectionInfoMap, Map<String, Integer> POIDetectionNumMap){
         List<TextDetectionInfo> resultList = new ArrayList<>();
         processTextDetectionInfo(textDetectionList,resultList);
@@ -418,6 +428,33 @@ public class LocationInfoUtil {
 //            }
 //        }
     }
+
+
+    //获取文字识别信息--只考虑出现一次的情况(实时版本)
+    public static void getTextDetectionInfo(List<String> textDetectionList, Map<String, TextDetectionAndPoi> textDetectionInfoMap) {
+        for (String textDetection : textDetectionList) {
+            String[] elements = textDetection.split(" ");
+            if (elements.length != 7) {
+                continue;
+            }
+            String timeStamp = elements[0];
+            String POIName = elements[6];
+            if (!textDetectionInfoMap.containsKey(POIName)) {
+                TextDetectionAndPoi textDetectionAndPoi = new TextDetectionAndPoi();
+                textDetectionAndPoi.timeStampList = new ArrayList<>();
+                textDetectionAndPoi.timeStampList.add(timeStamp);
+                textDetectionAndPoi.timeStamp = timeStamp;
+                textDetectionInfoMap.put(POIName, textDetectionAndPoi);
+            } else {
+                TextDetectionAndPoi textDetectionAndPoi = textDetectionInfoMap.get(POIName);
+                textDetectionAndPoi.timeStampList = textDetectionAndPoi.timeStampList;
+                textDetectionAndPoi.timeStampList.add(timeStamp);
+                textDetectionAndPoi.timeStamp = timeStamp;
+            }
+
+        }
+    }
+
     //计算文本识别框的面积
     public static double calcalateArea(TextDetectionInfo textDetectionInfo){
         double left = textDetectionInfo.left;
@@ -431,6 +468,12 @@ public class LocationInfoUtil {
     public static double calCenterDis(int previewWidth,double left,double right){
         double textDetectionCenter = (right + left)/2.0;
         return Math.abs(textDetectionCenter - (double)previewWidth/2.0);
+    }
+
+    //计算文本识别框的中心和相机预览窗口中心的关系
+    public static double compareCenterDis(int previewWidth,double left,double right){
+        double textDetectionCenter = (right + left)/2.0;
+        return textDetectionCenter - (double)previewWidth/2.0;
     }
 
     //判断断开的两段POI是否是同一个POI

@@ -1,5 +1,6 @@
 package com.zhouqing.chatproject.realtimeindoorlocation.util;
 
+import android.graphics.Bitmap;
 import android.os.Environment;
 
 import com.amap.api.maps.AMapUtils;
@@ -47,6 +48,9 @@ public class Constant {
 
     //判断识别文本框到手机屏幕中心的距离阈值
     public static final double CENTOR_DIS_THRESHOLD = 120d;
+
+    //BroadcastReceiver名称
+    public static final String BROADCASTRECEIVER_NAME = "com.zhouqing.chatproject.realtimeindoorlocation.service.SensorRecordService";
 
     public static final String[] SHOP_FILENAMES = {"SYS_LOCATION_INFO.txt","WDK_1F_SHOP_LOCATION_INFO.txt","WDK_2F_SHOP_LOCATION_INFO.txt",
             "XZG_1F_SHOP_LOCATION_INFO.txt","XZG_2F_SHOP_LOCATION_INFO.txt","WJ_1F_SHOP_LOCATION_INFO.txt","WJ_2F_SHOP_LOCATION_INFO.txt",
@@ -231,6 +235,15 @@ public class Constant {
         }
         return false;
     }
+
+    //绘图相关
+    public static Bitmap leftBitmap;
+    public static Bitmap rightBitmap;
+    public static Bitmap centerBitmap;
+
+
+
+
 
 
 

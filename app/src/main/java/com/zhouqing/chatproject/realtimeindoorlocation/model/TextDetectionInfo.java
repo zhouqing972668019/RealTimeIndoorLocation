@@ -7,6 +7,7 @@ public class TextDetectionInfo {
     public double right;
     public double bottom;
     public String textContent;
+    public String POIName;//对应的POI
 
     public TextDetectionInfo(long timeStamp, double left, double top, double right, double bottom, String textContent) {
         this.timeStamp = timeStamp;
