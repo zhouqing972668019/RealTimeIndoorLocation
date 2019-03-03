@@ -391,6 +391,20 @@ public class FileUtil {
 		return sp.getFloat(name,0f);
 	}
 
+	//写String类型值到sharedPreferences
+	public static void saveSPString(Context context, String name, String value){
+		SharedPreferences sp = context.getSharedPreferences(SPNAME, Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = sp.edit();
+		if(value != null)editor.putString(name,value);
+		editor.commit();
+	}
+
+	//从sharedPreferences中读取String类型值
+	public static String getSPString(Context context,String name){
+		SharedPreferences sp = context.getSharedPreferences(SPNAME, Context.MODE_PRIVATE);
+		return sp.getString(name,"");
+	}
+
     /**
      * 保存定位时用到的POI的名称
      * @param context
@@ -504,19 +518,17 @@ public class FileUtil {
 	/**
 	 * 将定位结果写到sharedPreferences中
 	 * @param answer
-	 * @param gyro_answer
 	 * @param mag_acc_answer
-	 * @param complex_gyro_answer
 	 */
-	public static void saveLocationResult(Context context,Double[] answer,Double[] gyro_answer,Double[] mag_acc_answer,Double[] complex_gyro_answer){
+	public static void saveLocationResult(Context context,Double[] answer,Double[] mag_acc_answer){
 		saveSpFloat(context,"answerX",Float.parseFloat(String.valueOf(answer[0])));
 		saveSpFloat(context,"answerY",Float.parseFloat(String.valueOf(answer[1])));
-		saveSpFloat(context,"gyro_answerX",Float.parseFloat(String.valueOf(gyro_answer[0])));
-		saveSpFloat(context,"gyro_answerY",Float.parseFloat(String.valueOf(gyro_answer[1])));
+		//saveSpFloat(context,"gyro_answerX",Float.parseFloat(String.valueOf(gyro_answer[0])));
+		//saveSpFloat(context,"gyro_answerY",Float.parseFloat(String.valueOf(gyro_answer[1])));
 		saveSpFloat(context,"mag_acc_answerX",Float.parseFloat(String.valueOf(mag_acc_answer[0])));
 		saveSpFloat(context,"mag_acc_answerY",Float.parseFloat(String.valueOf(mag_acc_answer[1])));
-		saveSpFloat(context,"complex_gyro_answerX",Float.parseFloat(String.valueOf(complex_gyro_answer[0])));
-		saveSpFloat(context,"complex_gyro_answerY",Float.parseFloat(String.valueOf(complex_gyro_answer[1])));
+		//saveSpFloat(context,"complex_gyro_answerX",Float.parseFloat(String.valueOf(complex_gyro_answer[0])));
+		//saveSpFloat(context,"complex_gyro_answerY",Float.parseFloat(String.valueOf(complex_gyro_answer[1])));
 	}
 
 	/**

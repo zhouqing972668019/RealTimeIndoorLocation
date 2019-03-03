@@ -169,8 +169,8 @@ public class ShowResultActivity extends AppCompatActivity {
             readShopInfo(locationMap,shapeMap);
             //获取定位结果相关信息
             Coordinate locAnswer = null;
-            float answerX = FileUtil.getSPFloat(ShowResultActivity.this,"answerX");
-            float answerY = FileUtil.getSPFloat(ShowResultActivity.this,"answerY");
+            float answerX = FileUtil.getSPFloat(ShowResultActivity.this,"mag_acc_answerX");
+            float answerY = FileUtil.getSPFloat(ShowResultActivity.this,"mag_acc_answerY");
             if(answerX != 0f || answerY != 0f){
                 locAnswer = new Coordinate(answerX,answerY);
             }

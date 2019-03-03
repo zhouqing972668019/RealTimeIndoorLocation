@@ -110,10 +110,12 @@ public class AutoSettingActivity extends AppCompatActivity {
 //                    Log.i(TAG,"地区编码-------------"+amapLocation.getAdCode());//地区编码
 //                    Log.i(TAG,"当前定位点的信息-----"+amapLocation.getAoiName());//获取当前定位点的AOI信息
 //                    Log.i(TAG,"当前定位点的楼层-----"+amapLocation.getFloor());//获取当前楼层
+                    //39.993915,116.34668
                     double latitude = amapLocation.getLatitude();
                     double longitude = amapLocation.getLongitude();
                     int shopSelection = Constant.getShopSelectionByDis(latitude,longitude);
                     spShop.setSelection(shopSelection);
+                    toast("latitude:"+latitude+",longitude:"+longitude);
                 } else {
                     //显示错误信息ErrCode是错误码，errInfo是错误信息，详见错误码表。
                     Log.e("AmapError", "location Error, ErrCode:"

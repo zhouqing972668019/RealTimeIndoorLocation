@@ -285,12 +285,13 @@ public class CameraActivity extends AppCompatActivity {
         //System.out.println("floorPlanMap:" + floorPlanMap.toString());
         //获取时间戳和方向角的对应关系
         Map<String,Double> oriMap = new LinkedHashMap<>();
-        Map<String,Double> gyroOriMap = new LinkedHashMap<>();
+        //Map<String,Double> gyroOriMap = new LinkedHashMap<>();
         Map<String,Double> magAccOriMap = new LinkedHashMap<>();
-        LocationInfoUtil.getOriInfo(oriMap,gyroOriMap,magAccOriMap,sensorInfoList);
+        LocationInfoUtil.getOriInfo(oriMap,magAccOriMap,sensorInfoList);
+//        LocationInfoUtil.getOriInfo(oriMap,gyroOriMap,magAccOriMap,sensorInfoList);
         System.out.println("oriMap:" + oriMap.toString());
         System.out.println("magAccOriMap:" + magAccOriMap);
-        System.out.println("gyroOriMap:" + gyroOriMap);
+        //System.out.println("gyroOriMap:" + gyroOriMap);
         //获取文字识别结果与真实poi的关系
         int previewWidth = FileUtil.getSPInt(CameraActivity.this,"previewWidth");
         if(previewWidth == 0){
@@ -308,7 +309,7 @@ public class CameraActivity extends AppCompatActivity {
         for(String POIName:textDetectionInfoMap.keySet()){
             TextDetectionAndPoi textDetectionAndPoi = textDetectionInfoMap.get(POIName);
             textDetectionAndPoi.ori_angle = LocationInfoUtil.getOriByTimeStamp(oriMap ,textDetectionAndPoi.timeStamp);
-            textDetectionAndPoi.gyro_ori_angle = LocationInfoUtil.getOriByTimeStamp(gyroOriMap,textDetectionAndPoi.timeStamp);
+            //textDetectionAndPoi.gyro_ori_angle = LocationInfoUtil.getOriByTimeStamp(gyroOriMap,textDetectionAndPoi.timeStamp);
             textDetectionAndPoi.mag_acc_angle = LocationInfoUtil.getOriByTimeStamp(magAccOriMap,textDetectionAndPoi.timeStamp);
             //List<Double> mag_acc_angleList = LocationInfoUtil.getAngleByTimeStampList(magAccOriMap,textDetectionAndPoi.timeStampList);
         }
@@ -323,23 +324,20 @@ public class CameraActivity extends AppCompatActivity {
 //        if(!LocationInfoUtil.isPOINumMoreThanOne(POIDetectionNumMap)){//不额外处理 直接计算位置
             if(textDetectionInfoMap.size() >= 3){
                 List<Double> angleList = new ArrayList<>();//方向传感器z轴读数
-                List<Double> gyroAngleList = new ArrayList<>();//校正的陀螺仪结果
+                //List<Double> gyroAngleList = new ArrayList<>();//校正的陀螺仪结果
                 List<Double> magAccAngleList = new ArrayList<>();//重力+磁场结果
-                List<Double> complexGyroAngleList = new ArrayList<>();//合成陀螺仪角度
+                //List<Double> complexGyroAngleList = new ArrayList<>();//合成陀螺仪角度
                 List<String> POINameList = new ArrayList<>();
-                LocationInfoUtil.getAngleOfPOIs(textDetectionInfoMap,angleList,POINameList,
-                        gyroAngleList,magAccAngleList,complexGyroAngleList,sensorInfoList);
+                LocationInfoUtil.getAngleOfPOIs(textDetectionInfoMap,angleList,POINameList, magAccAngleList);
                 List<Double[]> coordinateList = new ArrayList<>();// 获取已识别的角标位置信息--方向传感器
-                List<Double[]> gyro_coordinateList = new ArrayList<>();// 获取已识别的角标位置信息--陀螺仪
+                //List<Double[]> gyro_coordinateList = new ArrayList<>();// 获取已识别的角标位置信息--陀螺仪
                 List<Double[]> mag_acc_coordinateList = new ArrayList<>();// 获取已识别的角标位置信息--加速度+磁场
-                List<Double[]> complex_gyro_coordinateList = new ArrayList<>();// 获取已识别的角标位置信息--合成角速度
-                LocationInfoUtil.getCoordinateList(textDetectionInfoMap,floorPlanMap,coordinateList,
-                        gyro_coordinateList, mag_acc_coordinateList,
-                        complexGyroAngleList,complex_gyro_coordinateList);
+                //List<Double[]> complex_gyro_coordinateList = new ArrayList<>();// 获取已识别的角标位置信息--合成角速度
+                LocationInfoUtil.getCoordinateList(textDetectionInfoMap,floorPlanMap,coordinateList, mag_acc_coordinateList);
                 System.out.println("angleList:"+angleList.toString());
-                System.out.println("gyroAngleList:"+gyroAngleList.toString());
+                //System.out.println("gyroAngleList:"+gyroAngleList.toString());
                 System.out.println("magAccAngleList:"+magAccAngleList.toString());
-                System.out.println("complexGyroAngleList:"+complexGyroAngleList);
+                //System.out.println("complexGyroAngleList:"+complexGyroAngleList);
                 final List<Integer> direction = new ArrayList<>();
                 for (int j = 0; j < coordinateList.size(); j++) {
                     direction.add(-1);
@@ -348,35 +346,34 @@ public class CameraActivity extends AppCompatActivity {
                 if(answer == null){
                     answer = new Double[]{0d,0d};
                 }
-                Double[] gyro_answer = TextDetection.cal_corrdinate(gyroAngleList, gyro_coordinateList, direction);//陀螺仪
-                if(gyro_answer == null){
-                    gyro_answer = new Double[]{0d,0d};
-                }
+//                Double[] gyro_answer = TextDetection.cal_corrdinate(gyroAngleList, gyro_coordinateList, direction);//陀螺仪
+//                if(gyro_answer == null){
+//                    gyro_answer = new Double[]{0d,0d};
+//                }
                 Double[] mag_acc_answer = TextDetection.cal_corrdinate(magAccAngleList, mag_acc_coordinateList, direction);//重力+磁场
                 if(mag_acc_answer == null){
                     mag_acc_answer = new Double[]{0d,0d};
                 }
-                Double[] complex_gyro_answer = TextDetection.cal_corrdinate(complexGyroAngleList,complex_gyro_coordinateList,direction);//陀螺仪合成
-                if(complex_gyro_answer == null){
-                    complex_gyro_answer = new Double[]{0d,0d};
-                }
+//                Double[] complex_gyro_answer = TextDetection.cal_corrdinate(complexGyroAngleList,complex_gyro_coordinateList,direction);//陀螺仪合成
+//                if(complex_gyro_answer == null){
+//                    complex_gyro_answer = new Double[]{0d,0d};
+//                }
                 System.out.println("answer:"+ Arrays.toString(answer));
-                System.out.println("gyro_answer:"+ Arrays.toString(gyro_answer));
+                //System.out.println("gyro_answer:"+ Arrays.toString(gyro_answer));
                 System.out.println("mag_acc_answer:"+ Arrays.toString(mag_acc_answer));
-                System.out.println("complex_gyro_answer:"+Arrays.toString(complex_gyro_answer));
+               // System.out.println("complex_gyro_answer:"+Arrays.toString(complex_gyro_answer));
                 StringBuilder showInfoSB = new StringBuilder();
                 LocationInfoUtil.getLocationResult(showInfoSB,mag_acc_answer,textDetectionInfoMap,
-                        POINameList,angleList);
+                        POINameList,magAccAngleList);
                 //保存定位结果信息 保存到文件
-                LocationInfoUtil.getResultPrintContentFinal(resultSB,answer,gyro_answer,mag_acc_answer,complex_gyro_answer,
-                        POINameList,angleList,gyroAngleList,magAccAngleList,complexGyroAngleList);
+                LocationInfoUtil.getResultPrintContentFinal(resultSB,answer,mag_acc_answer, POINameList,angleList,magAccAngleList);
 //                if(method == -1){
 //                    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
 //                    TIMESTAMP_PATH = df.format(new Date())+"/";// new Date()为获取当前系统时间
 //                }
-                FileUtil.saveLocationResult(CameraActivity.this,answer,gyro_answer,mag_acc_answer,complex_gyro_answer);
+                FileUtil.saveLocationResult(CameraActivity.this,answer,mag_acc_answer);
                 //通过本次定位结果确定x轴基准角
-                float startAngle = LocationInfoUtil.getStartAngle(textDetectionInfoMap,floorPlanMap,answer);
+                float startAngle = LocationInfoUtil.getStartAngle(textDetectionInfoMap,floorPlanMap,mag_acc_answer);
                 FileUtil.saveSpFloat(CameraActivity.this,"startAngle",startAngle);
                 //保存当前用于定位结果的POI名称
                 FileUtil.savePOINames(CameraActivity.this,textDetectionInfoMap);

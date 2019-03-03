@@ -87,7 +87,7 @@ public class CameraSource {
   // These values may be requested by the caller.  Due to hardware limitations, we may need to
   // select close, but not exactly the same values for these.
   private final float requestedFps = 1.0f;
-  private final int requestedPreviewWidth = 1280;
+  private final int requestedPreviewWidth = 1080;
   private final int requestedPreviewHeight = 960;
   private final boolean requestedAutoFocus = true;
 
@@ -368,9 +368,9 @@ public class CameraSource {
    */
   private static SizePair selectSizePair(Camera camera, int desiredWidth, int desiredHeight) {
     List<SizePair> validPreviewSizes = generateValidPreviewSizeList(camera);
-//    for(SizePair sizePair: validPreviewSizes){
-//      System.out.println("sizePreviewSize:"+sizePair.previewSize().getWidth()+","+sizePair.previewSize().getHeight());
-//    }
+    for(SizePair sizePair: validPreviewSizes){
+      System.out.println("sizePreviewSize:"+sizePair.previewSize().getWidth()+","+sizePair.previewSize().getHeight());
+    }
 
     // The method for selecting the best size is to minimize the sum of the differences between
     // the desired values and the actual values for width and height.  This is certainly not the
@@ -636,7 +636,7 @@ public class CameraSource {
      * Sets the frame data received from the camera. This adds the previous unused frame buffer (if
      * present) back to the camera, and keeps a pending reference to the frame data for future use.
      */
-    void setNextFrame(byte[] data, Camera camera) {
+    void setNextFrame(final byte[] data, Camera camera) {
       synchronized (lock) {
         if (pendingFrameData != null) {
           camera.addCallbackBuffer(pendingFrameData.array());
@@ -650,7 +650,6 @@ public class CameraSource {
                   + "data from the camera.");
           return;
         }
-
         pendingFrameData = bytesToByteBuffer.get(data);
 
         // Notify the processor thread if it is waiting on the next frame (see below).
