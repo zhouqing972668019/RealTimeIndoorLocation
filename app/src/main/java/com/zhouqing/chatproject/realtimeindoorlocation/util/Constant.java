@@ -242,6 +242,86 @@ public class Constant {
     public static Bitmap centerBitmap;
 
 
+    //硬铁消除
+    public static String hardIron(List<String> magList){
+        double maxX = Integer.MIN_VALUE;
+        double maxY = Integer.MIN_VALUE;
+        double maxZ = Integer.MIN_VALUE;
+        double minX = Integer.MAX_VALUE;
+        double minY = Integer.MAX_VALUE;
+        double minZ = Integer.MAX_VALUE;
+        for(String mag:magList){
+            String[] elements = mag.split(",");
+            double x = Double.parseDouble(elements[0]);
+            double y = Double.parseDouble(elements[1]);
+            double z = Double.parseDouble(elements[2]);
+            if(x>maxX){
+                maxX = x;
+            }
+            if(x<minX){
+                minX = x;
+            }
+            if(y>maxY){
+                maxY = y;
+            }
+            if(y<minY){
+                minY = y;
+            }
+            if(z>maxZ){
+                maxZ = z;
+            }
+            if(z<minZ){
+                minZ = z;
+            }
+        }
+        double offsetX = (maxX+minX)/2.0;
+        double offsetY = (maxY+minY)/2.0;
+        double offsetZ = (maxZ+minZ)/2.0;
+        return offsetX+","+offsetY+","+offsetZ;
+    }
+
+    //软铁消除
+    public static String softIron(List<String> magList){
+        double maxX = Integer.MIN_VALUE;
+        double maxY = Integer.MIN_VALUE;
+        double maxZ = Integer.MIN_VALUE;
+        double minX = Integer.MAX_VALUE;
+        double minY = Integer.MAX_VALUE;
+        double minZ = Integer.MAX_VALUE;
+        for(String mag:magList){
+            String[] elements = mag.split(",");
+            double x = Double.parseDouble(elements[0]);
+            double y = Double.parseDouble(elements[1]);
+            double z = Double.parseDouble(elements[2]);
+            if(x>maxX){
+                maxX = x;
+            }
+            if(x<minX){
+                minX = x;
+            }
+            if(y>maxY){
+                maxY = y;
+            }
+            if(y<minY){
+                minY = y;
+            }
+            if(z>maxZ){
+                maxZ = z;
+            }
+            if(z<minZ){
+                minZ = z;
+            }
+        }
+        double avg_x = (maxX - minX)/2.0;
+        double avg_y = (maxY - minY)/2.0;
+        double avg_z = (maxZ - minZ)/2.0;
+        double avg = (avg_x + avg_y + avg_z)/3.0;
+        double scale_x = avg/avg_x;
+        double scale_y = avg/avg_y;
+        double scale_z = avg/avg_z;
+        return scale_x+","+scale_y+","+scale_z;
+    }
+
 
 
 

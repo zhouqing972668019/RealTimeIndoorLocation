@@ -13,6 +13,7 @@ import com.zhouqing.chatproject.realtimeindoorlocation.util.Constant;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
+    private Button btnSensorCalibrate;
     private Button btnFloorPlanAuto;
     private Button btnFloorPlanManual;
     private Button btnCollectionData;
@@ -25,6 +26,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        btnSensorCalibrate = findViewById(R.id.btn_sensor_calibrate);
         btnFloorPlanAuto = findViewById(R.id.btn_floor_plan_auto);
         btnFloorPlanManual = findViewById(R.id.btn_floor_plan_manual);
         btnCollectionData = findViewById(R.id.btn_collection_data);
@@ -32,6 +34,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnShowResult = findViewById(R.id.btn_show_result);
         tvContent = findViewById(R.id.tv_content);
         btnFloorPlanManual.setOnClickListener(this);
+        btnSensorCalibrate.setOnClickListener(this);
         btnFloorPlanAuto.setOnClickListener(this);
         btnCollectionData.setOnClickListener(this);
         btnShowResult.setOnClickListener(this);
@@ -52,6 +55,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         switch (v.getId()){
+            case R.id.btn_sensor_calibrate:
+                startActivity(new Intent(MainActivity.this,SensorCalibrateActivity.class));
+                break;
             case R.id.btn_floor_plan_auto:
                 startActivity(new Intent(MainActivity.this,AutoSettingActivity.class));
                 break;

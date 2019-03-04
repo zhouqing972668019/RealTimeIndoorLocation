@@ -29,6 +29,15 @@
         android:layout_centerInParent="true"
         android:layout_alignParentBottom="true"
         android:text="Start"/>
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginRight="5dp"
+        android:text="mag calibrate"
+        android:id="@+id/cb_mag_ca"
+        />
 
     <Button
         android:id="@+id/btn_localization"

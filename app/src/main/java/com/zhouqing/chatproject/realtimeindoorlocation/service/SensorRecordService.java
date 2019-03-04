@@ -13,6 +13,7 @@ import android.util.Log;
 
 import com.zhouqing.chatproject.realtimeindoorlocation.model.ComparableSensorEvent;
 import com.zhouqing.chatproject.realtimeindoorlocation.util.Constant;
+import com.zhouqing.chatproject.realtimeindoorlocation.util.FileUtil;
 import com.zhouqing.chatproject.realtimeindoorlocation.util.LocationInfoUtil;
 import com.zhouqing.chatproject.realtimeindoorlocation.util.SensorLoggingAsyncTask;
 
@@ -74,6 +75,12 @@ public class SensorRecordService extends Service implements SensorEventListener 
 
     private boolean firstMagRecord = true;
 
+    private boolean isSensorCalibrate = false;
+
+    private String hardIronStr = null;
+
+    private String softIronStr = null;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -103,10 +110,11 @@ public class SensorRecordService extends Service implements SensorEventListener 
                 1000, TIME_CONSTANT);
     }
 
-    public void startLogging(String timestr) {
+    public void startLogging(String timestr,boolean isSensorCalibrate) {
         sensorEventList.clear();
         //timeString = timestr;
         isLogging = true;
+        this.isSensorCalibrate = isSensorCalibrate;
     }
 
     public void stopLogging() {
@@ -184,16 +192,24 @@ public class SensorRecordService extends Service implements SensorEventListener 
                     break;
 
                 case Sensor.TYPE_MAGNETIC_FIELD:
-                    if(firstMagRecord){
-                        firstMagRecord = false;
-                        System.arraycopy(sensorEvent.values, 0, magnet, 0, 3);
+                    if(isSensorCalibrate){
+                        if(hardIronStr == null){
+                            hardIronStr = FileUtil.getSPString(SensorRecordService.this,"hardIron");
+                        }
+                        if(softIronStr == null){
+                            softIronStr = FileUtil.getSPString(SensorRecordService.this,"softIron");
+                        }
+                        if(hardIronStr == null || hardIronStr.equals("") || softIronStr == null || softIronStr.equals("")){
+                            System.arraycopy(sensorEvent.values, 0, magnet, 0, 3);
+                        }
+                        else{
+                            float[] result = new float[3];
+                            dealWithSensorData(sensorEvent.values,result,hardIronStr,softIronStr);
+                            System.arraycopy(result,0,magnet,0,3);
+                        }
                     }
                     else{
-                        float[] calMagnet = new float[3];
-                        for(int i=0;i<3;i++){
-                            calMagnet[i] = magnet[i] * Constant.SENSOR_ALPHA + (1-Constant.SENSOR_ALPHA)*sensorEvent.values[i];
-                        }
-                        System.arraycopy(calMagnet, 0, magnet, 0, 3);
+                        System.arraycopy(sensorEvent.values, 0, magnet, 0, 3);
                     }
                     // copy new magnetometer data into magnet array
                     break;
@@ -512,6 +528,14 @@ public class SensorRecordService extends Service implements SensorEventListener 
             answerList.add(sb.toString());
         }
         return answerList;
+    }
+
+    public static void dealWithSensorData(float[] values,float[] result,String hardIronStr,String softIronStr){
+        String[] hardIrons = hardIronStr.split(",");
+        String[] softIrons = softIronStr.split(",");
+        for(int i=0;i<values.length;i++){
+            result[i] = (values[i] - Float.parseFloat(hardIrons[i].trim()))*Float.parseFloat(softIrons[i].trim());
+        }
     }
 
 

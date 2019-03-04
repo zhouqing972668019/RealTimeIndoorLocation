@@ -11,9 +11,12 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.images.Size;
 import com.zhouqing.chatproject.realtimeindoorlocation.R;
@@ -53,6 +56,7 @@ public class CameraActivity extends AppCompatActivity {
     private Button btnLocalization;
     private Spinner spFolder;
     private LinearLayout llFolder;
+    private CheckBox cbSensor;
 
     public static String TIMESTAMP_PATH = null;
 
@@ -72,6 +76,8 @@ public class CameraActivity extends AppCompatActivity {
     private TextView tvPOINum;
 
     DecimalFormat d = new DecimalFormat("#.##");
+
+    boolean isSensorCalibrate = false;
 
     //endregion
 
@@ -128,6 +134,20 @@ public class CameraActivity extends AppCompatActivity {
         });
 
         llFolder = findViewById(R.id.ll_folder);
+        cbSensor = findViewById(R.id.cb_mag_ca);
+        cbSensor.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    Toast.makeText(CameraActivity.this,"confirm",Toast.LENGTH_SHORT).show();
+                    /*ckOK.setEnabled(false);*/
+                    isSensorCalibrate = true;
+                }else{
+                    Toast.makeText(CameraActivity.this,"cancel",Toast.LENGTH_SHORT).show();
+                    isSensorCalibrate = false;
+                }
+            }
+        });
 
         //FirebaseApp.initializeApp(this);
 
@@ -178,7 +198,7 @@ public class CameraActivity extends AppCompatActivity {
         createCameraSource();
         startCameraSource();
         String timeString =System.currentTimeMillis()+"";
-        SensorRecordService.instance().startLogging(timeString);
+        SensorRecordService.instance().startLogging(timeString,isSensorCalibrate);
     }
 
     public void collectionStop(){
