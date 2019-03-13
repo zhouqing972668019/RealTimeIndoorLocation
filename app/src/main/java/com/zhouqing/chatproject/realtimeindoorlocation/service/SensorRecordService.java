@@ -226,6 +226,7 @@ public class SensorRecordService extends Service implements SensorEventListener 
         if (SensorManager.getRotationMatrix(rotationMatrix, null, accel, magnet)) {
             float[] remapMatrix = new float[9];
             SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_X, SensorManager.AXIS_Z, remapMatrix);
+            //remapMatrix = rotationMatrix;
             SensorManager.getOrientation(remapMatrix, accMagOrientation);
         }
         //构造结果存入文件
@@ -245,8 +246,7 @@ public class SensorRecordService extends Service implements SensorEventListener 
 
         // initialisation of the gyroscope based rotation matrix
         if (initState) {
-            float[] initMatrix = new float[9];
-            initMatrix = getRotationMatrixFromOrientation(accMagOrientation);
+            float[] initMatrix = getRotationMatrixFromOrientation(accMagOrientation);
             float[] test = new float[3];
             SensorManager.getOrientation(initMatrix, test);
             gyroMatrix = matrixMultiplication(gyroMatrix, initMatrix);
@@ -437,7 +437,7 @@ public class SensorRecordService extends Service implements SensorEventListener 
 
             // overwrite gyro matrix and orientation with fused orientation
             // to comensate gyro drift
-            gyroMatrix = getRotationMatrixFromOrientation(fusedOrientation);
+            //gyroMatrix = getRotationMatrixFromOrientation(fusedOrientation);
             System.arraycopy(fusedOrientation, 0, gyroOrientation, 0, 3);
 
 //            Log.d(TAG, "fusedOrientation:"+fusedOrientation[0]*180/Math.PI + ","
@@ -447,7 +447,6 @@ public class SensorRecordService extends Service implements SensorEventListener 
             Intent intent=new Intent();
             intent.putExtra("angle", (double)ori[0]);
             intent.putExtra("accMagAngle", accMagOrientation[0]*180/Math.PI);
-            //intent.putExtra("gyroAngle", gyroOrientation[0]*180/Math.PI);
             intent.setAction(Constant.BROADCASTRECEIVER_NAME);
             sendBroadcast(intent);
         }

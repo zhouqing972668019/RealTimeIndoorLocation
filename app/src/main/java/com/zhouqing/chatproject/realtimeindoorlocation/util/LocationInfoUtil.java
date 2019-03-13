@@ -615,7 +615,7 @@ public class LocationInfoUtil {
                                                   List<String> POINameList, List<Double> angleList, List<Double> magAccAngleList){
         resultSB.append("Location Info:\n");
         for(int i=0;i<POINameList.size();i++){
-            resultSB.append(POINameList.get(i)+":(ori)"+angleList.get(i)+",(gyro)"+",(mag_acc)"+magAccAngleList.get(i)+",(complex_gyro)"+"\n");
+            resultSB.append(POINameList.get(i)+":(ori)"+angleList.get(i)+",(gyro)"+",(mag_acc)"+magAccAngleList.get(i)+"\n");
         }
         resultSB.append("Location Result:\n");
         resultSB.append("ori:("+answer[0]+","+answer[1]+")"+"\n");
