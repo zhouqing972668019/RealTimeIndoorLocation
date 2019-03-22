@@ -3,6 +3,10 @@ package com.zhouqing.chatproject.realtimeindoorlocation.util;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
@@ -15,6 +19,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -32,6 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import sun.misc.BASE64Encoder;
 
 public class FileUtil {
 	private static final String TAG = "FileUtil";
@@ -171,6 +178,7 @@ public class FileUtil {
 		}
 
 	}
+
 
 	//获取某个文件夹下所有文件的名称
 	public static List<String> getFileName(String path) {
@@ -520,15 +528,15 @@ public class FileUtil {
 	 * @param answer
 	 * @param mag_acc_answer
 	 */
-	public static void saveLocationResult(Context context,Double[] answer,Double[] mag_acc_answer){
+	public static void saveLocationResult(Context context,Double[] answer,Double[] gyro_answer,Double[] mag_acc_answer,Double[] complex_gyro_answer){
 		saveSpFloat(context,"answerX",Float.parseFloat(String.valueOf(answer[0])));
 		saveSpFloat(context,"answerY",Float.parseFloat(String.valueOf(answer[1])));
-		//saveSpFloat(context,"gyro_answerX",Float.parseFloat(String.valueOf(gyro_answer[0])));
-		//saveSpFloat(context,"gyro_answerY",Float.parseFloat(String.valueOf(gyro_answer[1])));
+		saveSpFloat(context,"gyro_answerX",Float.parseFloat(String.valueOf(gyro_answer[0])));
+		saveSpFloat(context,"gyro_answerY",Float.parseFloat(String.valueOf(gyro_answer[1])));
 		saveSpFloat(context,"mag_acc_answerX",Float.parseFloat(String.valueOf(mag_acc_answer[0])));
 		saveSpFloat(context,"mag_acc_answerY",Float.parseFloat(String.valueOf(mag_acc_answer[1])));
-		//saveSpFloat(context,"complex_gyro_answerX",Float.parseFloat(String.valueOf(complex_gyro_answer[0])));
-		//saveSpFloat(context,"complex_gyro_answerY",Float.parseFloat(String.valueOf(complex_gyro_answer[1])));
+		saveSpFloat(context,"complex_gyro_answerX",Float.parseFloat(String.valueOf(complex_gyro_answer[0])));
+		saveSpFloat(context,"complex_gyro_answerY",Float.parseFloat(String.valueOf(complex_gyro_answer[1])));
 	}
 
 	/**
@@ -686,6 +694,144 @@ public class FileUtil {
 			e.printStackTrace();
 		}
 	}
+
+	/**
+	 * 将字节数组转换为ImageView可调用的Bitmap对象
+	 * @param bytes
+	 * @param opts
+	 * @return Bitmap
+	 */
+	public static Bitmap getBitMapFromBytes(byte[] bytes,
+										 BitmapFactory.Options opts) {
+		Bitmap bitmap = null;
+		if (bytes != null){
+			if (opts != null){
+				bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, opts);
+			}
+			else{
+				bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+			}
+		}
+		bitmap = adjustPhotoRotation(bitmap,90);
+		return bitmap;
+	}
+
+	/**
+	 * 对bitmap旋转任意角度
+	 * @param bitmap
+	 * @param orientationDegree
+	 * @return
+	 */
+	public static Bitmap adjustPhotoRotation(Bitmap bitmap, int orientationDegree) {
+		Matrix matrix = new Matrix();
+		matrix.setRotate(orientationDegree, (float) bitmap.getWidth() / 2,
+				(float) bitmap.getHeight() / 2);
+		float targetX, targetY;
+		if (orientationDegree == 90) {
+			targetX = bitmap.getHeight();
+			targetY = 0;
+		} else {
+			targetX = bitmap.getHeight();
+			targetY = bitmap.getWidth();
+		}
+
+
+		final float[] values = new float[9];
+		matrix.getValues(values);
+
+
+		float x1 = values[Matrix.MTRANS_X];
+		float y1 = values[Matrix.MTRANS_Y];
+
+
+		matrix.postTranslate(targetX - x1, targetY - y1);
+
+
+		Bitmap canvasBitmap = Bitmap.createBitmap(bitmap.getHeight(), bitmap.getWidth(),
+				Bitmap.Config.ARGB_8888);
+
+
+		Paint paint = new Paint();
+		Canvas canvas = new Canvas(canvasBitmap);
+		canvas.drawBitmap(bitmap, matrix, paint);
+
+
+		return canvasBitmap;
+	}
+
+
+
+	/**
+	 * bitmap转base64
+	 * @param bitmap
+	 * @return
+	 */
+
+	public static String bitmapToBase64(Bitmap bitmap) {
+
+		String result = null;
+		ByteArrayOutputStream baos = null;
+		try {
+			if (bitmap != null) {
+				baos = new ByteArrayOutputStream();
+				bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+
+				baos.flush();
+				baos.close();
+
+				byte[] bitmapBytes = baos.toByteArray();
+//				result = Base64.encodeToString(bitmapBytes, Base64.DEFAULT);
+                //对字节数组Base64编码
+                BASE64Encoder encoder = new BASE64Encoder();
+                //返回Base64编码过的字节数组字符串
+                result = encoder.encode(bitmapBytes);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (baos != null) {
+					baos.flush();
+					baos.close();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * 将byte数组转换成图片并保存到本地
+	 * @param bytes
+	 * @param path
+	 */
+	public static void bytesToImageFile(byte[] bytes,String path) {
+		try {
+			if (!new File(path).exists()) {
+				new File(path).mkdirs();
+			}
+			File file = new File(path+"img.jpg");
+			FileOutputStream fos = new FileOutputStream(file);
+			fos.write(bytes, 0, bytes.length);
+			fos.flush();
+			fos.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * byte数组转换成base64
+	 * @param bytes
+	 * @return
+	 */
+	public static String byte2Base64(byte[] bytes){
+		BASE64Encoder encoder = new BASE64Encoder();
+		return encoder.encode(bytes);
+	}
+
+	public static boolean isSave = true;
 
 
 

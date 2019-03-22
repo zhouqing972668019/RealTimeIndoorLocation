@@ -36,5 +36,6 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation files('libs/AMap_Location_V4.4.0_20181122.jar')
     implementation files('libs/Android_Map3D_SDK_V6.6.0_20181221.jar')
+    compile "com.squareup.okhttp3:okhttp:3.4.1"
 }
 apply plugin: 'com.google.gms.google-services'

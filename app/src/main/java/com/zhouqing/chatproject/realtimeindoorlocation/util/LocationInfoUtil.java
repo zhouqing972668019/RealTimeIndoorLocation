@@ -22,7 +22,7 @@ public class LocationInfoUtil {
     public static final long TIMESTAMP_THRESHOLD = 1500;
 
     //获取相关方向角信息
-    public static void getOriInfo(Map<String,Double> oriMap, Map<String,Double> magAccOriMap, List<String> sensorInfoList){
+    public static void getOriInfo(Map<String,Double> oriMap, Map<String,Double> gyroOriMap, Map<String,Double> magAccOriMap, List<String> sensorInfoList){
         for(String sensorInfo:sensorInfoList){
             String[] elements = sensorInfo.split(" ");
             if(elements.length != 5){
@@ -31,13 +31,13 @@ public class LocationInfoUtil {
             if(elements[0].equals(ORI)){
                 oriMap.put(elements[1],Double.parseDouble(elements[2]));
             }
-//            else if(elements[0].equals(GYRO_ORI)){
-//                Double angle = Double.parseDouble(elements[2]);
-//                if(angle < 0d){
-//                    angle += 360d;
-//                }
-//                gyroOriMap.put(elements[1],angle);
-//            }
+            else if(elements[0].equals(GYRO_ORI)){
+                Double angle = Double.parseDouble(elements[4]);
+                if(angle < 0d){
+                    angle += 360d;
+                }
+                gyroOriMap.put(elements[1],angle);
+            }
             else if(elements[0].equals(MAG_ACC_ORI)){
                 Double angle = Double.parseDouble(elements[2]);
                 if(angle < 0d){
@@ -447,6 +447,7 @@ public class LocationInfoUtil {
                 textDetectionInfoMap.put(POIName, textDetectionAndPoi);
             } else {
                 TextDetectionAndPoi textDetectionAndPoi = textDetectionInfoMap.get(POIName);
+                textDetectionAndPoi.timeStampList = textDetectionAndPoi.timeStampList;
                 textDetectionAndPoi.timeStampList.add(timeStamp);
                 textDetectionAndPoi.timeStamp = timeStamp;
             }
@@ -494,7 +495,8 @@ public class LocationInfoUtil {
 
     //获取两两POI之间的夹角
     public static void getAngleOfPOIs(Map<String, TextDetectionAndPoi> textDetectionInfoMap, List<Double> angleList, List<String> POINameList,
-                                      List<Double> magAccAngleList){
+                                      List<Double> gyroAngleList, List<Double> magAccAngleList,List<Double> complexGyroAngleList,
+                                      List<String> sensorInfoList){
         List<Map.Entry<String,TextDetectionAndPoi>> calculateList = new ArrayList<>(textDetectionInfoMap.entrySet());
         for(int i=1;i<calculateList.size();i++){
             POINameList.add(calculateList.get(i-1).getKey()+"->"+calculateList.get(i).getKey());
@@ -504,37 +506,38 @@ public class LocationInfoUtil {
                 angle += 360;
             }
             angleList.add(angle);
-            //陀螺仪夹角
-//            double lastAngle = calculateList.get(i).getValue().gyro_ori_angle;
-//            if(lastAngle<0)lastAngle += 360;
-//            double firstAngle = calculateList.get(i-1).getValue().gyro_ori_angle;
-//            if(firstAngle<0)firstAngle += 360;
-//            double gyroAngle = lastAngle - firstAngle;
-//            if(gyroAngle<0)gyroAngle += 360;
-//            gyroAngleList.add(gyroAngle);
-            //磁场+重力夹角
-            double lastAngle = calculateList.get(i).getValue().mag_acc_angle;
+            //陀螺仪夹角(方向与磁力计+加速度计结果相反)
+            double lastAngle = calculateList.get(i).getValue().gyro_ori_angle;
             if(lastAngle<0)lastAngle += 360;
-            double firstAngle = calculateList.get(i-1).getValue().mag_acc_angle;
+            double firstAngle = calculateList.get(i-1).getValue().gyro_ori_angle;
+            if(firstAngle<0)firstAngle += 360;
+            double gyroAngle = firstAngle - lastAngle;
+            if(gyroAngle<0)gyroAngle += 360;
+            gyroAngleList.add(gyroAngle);
+            //磁场+重力夹角
+            lastAngle = calculateList.get(i).getValue().mag_acc_angle;
+            if(lastAngle<0)lastAngle += 360;
+            firstAngle = calculateList.get(i-1).getValue().mag_acc_angle;
             if(firstAngle<0)firstAngle += 360;
             double magAccAngle = lastAngle - firstAngle;
             if(magAccAngle<0)magAccAngle += 360;
             magAccAngleList.add(magAccAngle);
             //合成的陀螺仪角度
-//            double complexGyroAngle = calOriByGyro(sensorInfoList,calculateList.get(i-1).getValue().timeStamp,
-//                    calculateList.get(i).getValue().timeStamp);
-//            complexGyroAngleList.add(complexGyroAngle);
+            double complexGyroAngle = calOriByGyro(sensorInfoList,calculateList.get(i-1).getValue().timeStamp,
+                    calculateList.get(i).getValue().timeStamp);
+            complexGyroAngleList.add(complexGyroAngle);
         }
     }
 
     //获取已识别的角标信息
     public static void getCoordinateList(Map<String, TextDetectionAndPoi> textDetectionInfoMap,
                                          Map<String, StandardLocationInfo> floorPlanMap,
-                                         List<Double[]> coordinateList,
-                                         List<Double[]> mag_acc_coordinateList)
+                                         List<Double[]> coordinateList,List<Double[]> gyro_coordinateList,
+                                         List<Double[]> mag_acc_coordinateList,List<Double> complexGyroAngleList,
+                                         List<Double[]> complex_gyro_coordinateList)
     {
-//        int index = -1;
-//        double preComplexAngle = 0d;
+        int index = -1;
+        double preComplexAngle = 0d;
         for (String POIName:textDetectionInfoMap.keySet()) {
             Double[] coordinate = new Double[3];
             coordinate[0] = floorPlanMap.get(POIName).getX();
@@ -543,30 +546,30 @@ public class LocationInfoUtil {
             coordinateList.add(coordinate);
             //System.out.println("coordinate：x=" + coordinate[0] + " y=" + coordinate[1]);
 
-//            Double[] gyro_coordinate = new Double[3];
-//            gyro_coordinate[0] = floorPlanMap.get(POIName).getX();
-//            gyro_coordinate[1] = floorPlanMap.get(POIName).getY();
-//            gyro_coordinate[2] = textDetectionInfoMap.get(POIName).gyro_ori_angle;
-//            gyro_coordinateList.add(gyro_coordinate);
+            Double[] gyro_coordinate = new Double[3];
+            gyro_coordinate[0] = floorPlanMap.get(POIName).getX();
+            gyro_coordinate[1] = floorPlanMap.get(POIName).getY();
+            gyro_coordinate[2] = textDetectionInfoMap.get(POIName).gyro_ori_angle;
+            gyro_coordinateList.add(gyro_coordinate);
 
             Double[] mag_acc_coordinate = new Double[3];
             mag_acc_coordinate[0] = floorPlanMap.get(POIName).getX();
             mag_acc_coordinate[1] = floorPlanMap.get(POIName).getY();
             mag_acc_coordinate[2] = textDetectionInfoMap.get(POIName).mag_acc_angle;
-            mag_acc_coordinateList.add(mag_acc_coordinate);
+            mag_acc_coordinateList.add(gyro_coordinate);
 
-//            Double[] complex_gyro_coordinate = new Double[3];
-//            complex_gyro_coordinate[0] = floorPlanMap.get(POIName).getX();
-//            complex_gyro_coordinate[1] = floorPlanMap.get(POIName).getY();
-//            if(index == -1){
-//                complex_gyro_coordinate[2] = textDetectionInfoMap.get(POIName).ori_angle;
-//            }
-//            else{
-//                complex_gyro_coordinate[2] = preComplexAngle + complexGyroAngleList.get(index);
-//            }
-//            preComplexAngle = complex_gyro_coordinate[2];
-//            index++;
-//            complex_gyro_coordinateList.add(complex_gyro_coordinate);
+            Double[] complex_gyro_coordinate = new Double[3];
+            complex_gyro_coordinate[0] = floorPlanMap.get(POIName).getX();
+            complex_gyro_coordinate[1] = floorPlanMap.get(POIName).getY();
+            if(index == -1){
+                complex_gyro_coordinate[2] = textDetectionInfoMap.get(POIName).ori_angle;
+            }
+            else{
+                complex_gyro_coordinate[2] = preComplexAngle + complexGyroAngleList.get(index);
+            }
+            preComplexAngle = complex_gyro_coordinate[2];
+            index++;
+            complex_gyro_coordinateList.add(complex_gyro_coordinate);
         }
     }
 
@@ -586,15 +589,15 @@ public class LocationInfoUtil {
 
 
     //获取定位结果 返回给上一个界面
-    public static void getLocationResult(StringBuilder showInfo, Double[] mag_acc_answer, Map<String, TextDetectionAndPoi> textDetectionInfoMap, List<String> POINameList, List<Double> magAccAngleList){
-        showInfo.append("location answer:(").append(mag_acc_answer[0]).append(",").append(mag_acc_answer[1]).append(")\n");
+    public static void getLocationResult(StringBuilder showInfo, Double[] answer, Map<String, TextDetectionAndPoi> textDetectionInfoMap, List<String> POINameList, List<Double> angleList){
+        showInfo.append("location answer:(").append(answer[0]).append(",").append(answer[1]).append(")\n");
         showInfo.append("Intermediate information:\n");
         for(String POIName:textDetectionInfoMap.keySet()){
             TextDetectionAndPoi textDetectionAndPoi = textDetectionInfoMap.get(POIName);
-            showInfo.append("POIName:"+POIName+",angel:"+textDetectionAndPoi.mag_acc_angle+"\n");
+            showInfo.append("POIName:"+POIName+",angel:"+textDetectionAndPoi.ori_angle+"\n");
         }
-        for(int i=0;i<magAccAngleList.size();i++){
-            showInfo.append(POINameList.get(i)+":"+magAccAngleList.get(i)+"\n");
+        for(int i=0;i<angleList.size();i++){
+            showInfo.append(POINameList.get(i)+":"+angleList.get(i)+"\n");
         }
     }
 
@@ -606,22 +609,26 @@ public class LocationInfoUtil {
             TextDetectionAndPoi textDetectionAndPoi = textDetectionInfoMap.get(POIName);
             resultSB.append("POIName:"+POIName+",timeStamp:"+textDetectionAndPoi.timeStamp
                     +",ori:"+textDetectionAndPoi.ori_angle+",mag_acc:"+textDetectionAndPoi.mag_acc_angle
-                    +"\n");
+                    +",gyro:"+textDetectionAndPoi.gyro_ori_angle+"\n");
         }
     }
 
     //进一步构造结果输出字符串 保存定位结果
-    public static void getResultPrintContentFinal(StringBuilder resultSB, Double[] answer, Double[] mag_acc_answer,
-                                                  List<String> POINameList, List<Double> angleList, List<Double> magAccAngleList){
+    public static void getResultPrintContentFinal(StringBuilder resultSB, Double[] answer, Double[] gyro_answer,
+                                                  Double[] mag_acc_answer,Double[] complex_gyro_answer,List<String> POINameList,
+                                                  List<Double> angleList,List<Double> gyroAngleList,
+                                                  List<Double> magAccAngleList,List<Double> complexGyroAngleList){
         resultSB.append("Location Info:\n");
         for(int i=0;i<POINameList.size();i++){
-            resultSB.append(POINameList.get(i)+":(ori)"+angleList.get(i)+",(gyro)"+",(mag_acc)"+magAccAngleList.get(i)+"\n");
+            resultSB.append(POINameList.get(i)+":(ori)"+angleList.get(i)+",(gyro)"+
+                    gyroAngleList.get(i)+",(mag_acc)"+magAccAngleList.get(i)+",(complex_gyro)"+
+                    complexGyroAngleList.get(i)+"\n");
         }
         resultSB.append("Location Result:\n");
         resultSB.append("ori:("+answer[0]+","+answer[1]+")"+"\n");
-        //resultSB.append("gyro_answer:("+gyro_answer[0]+","+gyro_answer[1]+")"+"\n");
+        resultSB.append("gyro_answer:("+gyro_answer[0]+","+gyro_answer[1]+")"+"\n");
         resultSB.append("mag_acc_answer:("+mag_acc_answer[0]+","+mag_acc_answer[1]+")"+"\n");
-        //resultSB.append("complex_gyro_answer:("+complex_gyro_answer[0]+","+complex_gyro_answer[1]+")"+"\n");
+        resultSB.append("complex_gyro_answer:("+complex_gyro_answer[0]+","+complex_gyro_answer[1]+")"+"\n");
     }
 
 
@@ -695,6 +702,26 @@ public class LocationInfoUtil {
     //获取最新的采集数据
     public static void getTargetCollectionData(List<String> sensorInfoList,List<String> textDetectionInfoList,String folderName) throws ParseException {
         FileUtil.readFileToGetCollectionData(Constant.COLLECTION_DATA_PATH + folderName + "/",sensorInfoList,textDetectionInfoList);
+    }
+
+
+    /**
+     * 20190313 更新陀螺仪角度
+     */
+    public static void updateGyroAngle(Map<String, TextDetectionAndPoi> textDetectionInfoMap,List<Double> gyroAngleList){
+        int index = 0;
+        double lastAngle = 0;
+        for(String POIName:textDetectionInfoMap.keySet()){
+            TextDetectionAndPoi textDetectionAndPoi = textDetectionInfoMap.get(POIName);
+            if(index == 0){
+                textDetectionAndPoi.gyro_ori_angle = textDetectionAndPoi.mag_acc_angle;
+            }
+            else{
+                textDetectionAndPoi.gyro_ori_angle = lastAngle + gyroAngleList.get(index - 1);
+            }
+            lastAngle = textDetectionAndPoi.gyro_ori_angle;
+            index++;
+        }
     }
 
 }

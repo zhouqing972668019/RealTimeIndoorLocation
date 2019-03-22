@@ -18,8 +18,11 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
+import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
+import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.support.annotation.Nullable;
@@ -33,7 +36,9 @@ import com.google.android.gms.common.images.Size;
 import com.zhouqing.chatproject.realtimeindoorlocation.model.FrameMetadata;
 import com.zhouqing.chatproject.realtimeindoorlocation.model.GraphicOverlay;
 import com.zhouqing.chatproject.realtimeindoorlocation.text_detection.TextRecognitionProcessor;
+import com.zhouqing.chatproject.realtimeindoorlocation.util.FileUtil;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.Thread.State;
 import java.nio.ByteBuffer;
@@ -612,6 +617,7 @@ public class CameraSource {
 
     // These pending variables hold the state associated with the new frame awaiting processing.
     private ByteBuffer pendingFrameData;
+    private byte[] byteData;
 
     FrameProcessingRunnable() {}
 
@@ -651,6 +657,17 @@ public class CameraSource {
           return;
         }
         pendingFrameData = bytesToByteBuffer.get(data);
+        byteData = convertYuvToJpeg(data, camera);
+
+        //将转换后的帧数据保存为图片
+        //FileUtil.bytesToImageFile(byteData,Constant.OUTPUT_FILE_PATH);
+        //将转换后的帧转换为bitmap再转换为BASE64
+//        Bitmap bitmap = FileUtil.getBitMapFromBytes(byteData,null);
+//        String base64Str = FileUtil.bitmapToBase64(bitmap);
+//        FileUtil.writeStrToPath("base64",base64Str,Constant.OUTPUT_FILE_PATH);
+        //将转换后的帧数据转换为BASE64串
+//            base64Str = FileUtil.byte2Base64(byteData);
+//            FileUtil.writeStrToPath("base64_new",base64Str,Constant.OUTPUT_FILE_PATH);
 
         // Notify the processor thread if it is waiting on the next frame (see below).
         lock.notifyAll();
@@ -675,6 +692,7 @@ public class CameraSource {
     @Override
     public void run() {
       ByteBuffer data;
+      byte[] bytes;
 
       while (true) {
         synchronized (lock) {
@@ -702,6 +720,8 @@ public class CameraSource {
           // recycled back to the camera before we are done using that data.
           data = pendingFrameData;
           pendingFrameData = null;
+          bytes = byteData;
+          byteData = null;
         }
 
         // The code below needs to run outside of synchronization, because this will allow
@@ -711,9 +731,11 @@ public class CameraSource {
         try {
           synchronized (processorLock) {
             Log.d(TAG, "Process an image");
+            Bitmap bitmap = FileUtil.getBitMapFromBytes(bytes,null);
+            String base64Str = FileUtil.bitmapToBase64(bitmap);
             frameProcessor.process(
                 System.currentTimeMillis(),
-                data,
+                data, base64Str,
                 new FrameMetadata.Builder()
                     .setWidth(previewSize.getWidth())
                     .setHeight(previewSize.getHeight())
@@ -735,4 +757,16 @@ public class CameraSource {
   private void cleanScreen() {
     graphicOverlay.clear();
   }
+
+
+  //预览数据帧转换
+  public byte[] convertYuvToJpeg(byte[] data, Camera camera) {
+    YuvImage image = new YuvImage(data, ImageFormat.NV21,
+            camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height, null);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    int quality = 20; //set quality
+    image.compressToJpeg(new Rect(0, 0, camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height), quality, baos);//this line decreases the image quality
+    return baos.toByteArray();
+  }
+
 }

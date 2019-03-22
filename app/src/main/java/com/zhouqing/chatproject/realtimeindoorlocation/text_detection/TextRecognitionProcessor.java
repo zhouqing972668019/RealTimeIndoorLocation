@@ -25,7 +25,6 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.ml.common.FirebaseMLException;
 import com.google.firebase.ml.vision.FirebaseVision;
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
-import com.google.firebase.ml.vision.common.FirebaseVisionImageMetadata;
 import com.google.firebase.ml.vision.text.FirebaseVisionText;
 import com.google.firebase.ml.vision.text.FirebaseVisionTextRecognizer;
 import com.zhouqing.chatproject.realtimeindoorlocation.model.FrameMetadata;
@@ -34,7 +33,10 @@ import com.zhouqing.chatproject.realtimeindoorlocation.model.StandardLocationInf
 import com.zhouqing.chatproject.realtimeindoorlocation.model.Text;
 import com.zhouqing.chatproject.realtimeindoorlocation.model.TextDetectionInfo;
 import com.zhouqing.chatproject.realtimeindoorlocation.util.Constant;
+import com.zhouqing.chatproject.realtimeindoorlocation.util.HTTPUtil;
 import com.zhouqing.chatproject.realtimeindoorlocation.util.LocationInfoUtil;
+
+import org.json.JSONException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -93,20 +95,36 @@ public class TextRecognitionProcessor {
 	}
 
 
-	public void process(long timeStamp,ByteBuffer data, FrameMetadata frameMetadata, GraphicOverlay graphicOverlay) throws FirebaseMLException {
+	public void process(long timeStamp,ByteBuffer data, String base64, FrameMetadata frameMetadata, GraphicOverlay graphicOverlay) throws FirebaseMLException {
 
 		if (shouldThrottle.get()) {
 			return;
 		}
-		FirebaseVisionImageMetadata metadata =
-				new FirebaseVisionImageMetadata.Builder()
-						.setFormat(FirebaseVisionImageMetadata.IMAGE_FORMAT_NV21)
-						.setWidth(frameMetadata.getWidth())
-						.setHeight(frameMetadata.getHeight())
-						.setRotation(frameMetadata.getRotation())
-						.build();
+		graphicOverlay.clear();
+		//搜狗ocr进行文字识别
+		String responseData = HTTPUtil.SougoOcrRequest(base64);
+		List<Text> detectTextList = new ArrayList<>();
+		try {
+			HTTPUtil.parseOCRResponse(responseData,detectTextList);
+			for(Text detectText:detectTextList){
+				GraphicOverlay.Graphic textGraphic = new TextGraphic(graphicOverlay, detectText);
+				graphicOverlay.add(textGraphic);
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 
-		detectInVisionImage(timeStamp,FirebaseVisionImage.fromByteBuffer(data, metadata), frameMetadata, graphicOverlay);
+
+		//firebase进行文字识别
+//		FirebaseVisionImageMetadata metadata =
+//				new FirebaseVisionImageMetadata.Builder()
+//						.setFormat(FirebaseVisionImageMetadata.IMAGE_FORMAT_NV21)
+//						.setWidth(frameMetadata.getWidth())
+//						.setHeight(frameMetadata.getHeight())
+//						.setRotation(frameMetadata.getRotation())
+//						.build();
+//
+//		detectInVisionImage(timeStamp,FirebaseVisionImage.fromByteBuffer(data, metadata), frameMetadata, graphicOverlay);
 	}
 
 	//endregion
@@ -121,7 +139,7 @@ public class TextRecognitionProcessor {
 	protected void onSuccess(long timeStamp,@NonNull FirebaseVisionText results, @NonNull FrameMetadata frameMetadata, @NonNull GraphicOverlay graphicOverlay) {
 
 		System.out.println("frameData:"+frameMetadata.getWidth()+","+frameMetadata.getHeight()+","+frameMetadata.getRotation());
-		graphicOverlay.clear();
+		//graphicOverlay.clear();
 
 		List<String> textDetectionList = new ArrayList<>();//当前这一帧画面中出现的文本列表
 
