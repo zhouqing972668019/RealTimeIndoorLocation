@@ -57,7 +57,9 @@
             android:exported="true" />
 
         <activity android:name=".activity.AutoSettingActivity" />
-        <activity android:name=".activity.TextRecActivity"></activity>
+        <activity android:name=".activity.TextRecActivity">
+
+        </activity>
         <activity android:name=".activity.ShowResultActivity" />
 
         <service android:name="com.amap.api.location.APSService" />

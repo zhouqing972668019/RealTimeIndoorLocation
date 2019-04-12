@@ -16,11 +16,16 @@ import com.google.firebase.ml.vision.common.FirebaseVisionImage;
 import com.google.firebase.ml.vision.text.FirebaseVisionText;
 import com.google.firebase.ml.vision.text.FirebaseVisionTextRecognizer;
 import com.zhouqing.chatproject.realtimeindoorlocation.R;
+import com.zhouqing.chatproject.realtimeindoorlocation.model.Text;
 import com.zhouqing.chatproject.realtimeindoorlocation.util.Constant;
 import com.zhouqing.chatproject.realtimeindoorlocation.util.FileUtil;
+import com.zhouqing.chatproject.realtimeindoorlocation.util.HTTPUtil;
+
+import org.json.JSONException;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class TextRecActivity extends AppCompatActivity {
@@ -51,8 +56,39 @@ public class TextRecActivity extends AppCompatActivity {
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
+                //runSougouTextRecognition();
             }
         });
+    }
+
+    private void runSougouTextRecognition(){
+        fileNameList = FileUtil.getFileName(Constant.TEXT_DATASET);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                StringBuilder finalResult = new StringBuilder();
+                for(String fileName:fileNameList){
+                    long startTime = System.currentTimeMillis();
+                    String base64 = FileUtil.getImageStr(Constant.TEXT_DATASET+fileName);
+                    String answer = HTTPUtil.SougoOcrRequest(base64);
+                    List<Text> textList = new ArrayList<>();
+                    try {
+                        HTTPUtil.parseOCRResponse(answer,textList);
+                        StringBuilder line = new StringBuilder();
+                        for(Text text:textList){
+                            line.append(text.content.replace("\n"," ")).append(" ");
+                        }
+                        System.out.println("answer:"+line.toString());
+                        long time = System.currentTimeMillis()-startTime;
+                        finalResult.append(fileName).append(",").append(line).append(",")
+                                .append(time).append("\n");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+                FileUtil.writeStrToPath("textResult",finalResult.toString(),Constant.TEXT_DATASET);
+            }
+        }).start();
     }
 
 
