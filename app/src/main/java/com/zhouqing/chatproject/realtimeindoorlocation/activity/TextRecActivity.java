@@ -41,13 +41,17 @@ public class TextRecActivity extends AppCompatActivity {
     private long startTime;
     private long endTime;
 
+    List<String> folderList;
+    String folderPath;
+
+    int folderIndex = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_text_rec);
         btnRecognize = findViewById(R.id.btn_recognize);
         tvResult = findViewById(R.id.tv_result);
-        resultSB = new StringBuilder();
         btnRecognize.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -59,6 +63,7 @@ public class TextRecActivity extends AppCompatActivity {
                 //runSougouTextRecognition();
             }
         });
+        folderList = FileUtil.getChildFolder(Constant.TEXT_ALL_DATASET+"/");
     }
 
     private void runSougouTextRecognition(){
@@ -93,10 +98,13 @@ public class TextRecActivity extends AppCompatActivity {
 
 
     private void runTextRecognition() throws FileNotFoundException {
-        fileNameList = FileUtil.getFileName(Constant.TEXT_DATASET);
+        resultSB = new StringBuilder();
+        folderPath = Constant.TEXT_ALL_DATASET+"/"+folderList.get(folderIndex)+"/";
+        fileNameList = FileUtil.getFileName(folderPath);
         finalFileName = fileNameList.get(fileNameList.size() - 1);
+        System.out.println("folderName:"+folderList.get(0));
         String fileName = fileNameList.get(0);
-        FileInputStream fis = new FileInputStream(Constant.TEXT_DATASET + fileName);
+        FileInputStream fis = new FileInputStream(folderPath+fileName);
         Bitmap bitmap  = BitmapFactory.decodeStream(fis);
         FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(bitmap);
         FirebaseVisionTextRecognizer recognizer = FirebaseVision.getInstance()
@@ -140,13 +148,14 @@ public class TextRecActivity extends AppCompatActivity {
         }
         line += ","+(System.currentTimeMillis() - startTime);
         resultSB.append(line).append("\n");
+        System.out.println("line:"+line);
         System.out.println("index:"+index+",fileName:"+fileNameList.get(index)+",line:"+line);
         if(index != fileNameList.size() - 1){
             startTime = System.currentTimeMillis();
             String fileName = fileNameList.get(index + 1);
             FileInputStream fis = null;
             try {
-                fis = new FileInputStream(Constant.TEXT_DATASET + fileName);
+                fis = new FileInputStream(folderPath + fileName);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -174,7 +183,9 @@ public class TextRecActivity extends AppCompatActivity {
         else{
             btnRecognize.setEnabled(true);
             tvResult.setText(resultSB.toString());
-            FileUtil.writeStrToPath("textResult",resultSB.toString(),Constant.TEXT_DATASET);
+            FileUtil.writeStrToPath("textResult"+"_"+folderList.get(folderIndex
+            ),resultSB.toString(),Constant.RESULT_PATH);
+            folderIndex++;
         }
     }
 }

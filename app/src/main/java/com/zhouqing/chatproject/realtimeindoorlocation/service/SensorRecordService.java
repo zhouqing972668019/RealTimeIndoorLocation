@@ -178,6 +178,7 @@ public class SensorRecordService extends Service implements SensorEventListener 
                             calAccl[i] = accel[i] * Constant.SENSOR_ALPHA + (1-Constant.SENSOR_ALPHA)*sensorEvent.values[i];
                         }
                         System.arraycopy(calAccl,0,accel,0,3);
+                        //System.arraycopy(sensorEvent.values,0,accel,0,3);
                     }
                     calculateAccMagOrientation(currentTimeStamp);
                     Log.d(TAG, "accMagorientation:"+accMagOrientation[0]*180/Math.PI+","+

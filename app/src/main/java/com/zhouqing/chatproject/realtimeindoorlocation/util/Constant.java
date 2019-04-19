@@ -31,8 +31,15 @@ public class Constant {
     public static String TEXT_DATASET
             =Environment.getExternalStorageDirectory()+"/firebase_dataset/";
 
+    //不同分辨率的文件夹
+    public static String TEXT_ALL_DATASET
+            =Environment.getExternalStorageDirectory()+"/BaiduOCRManyTest/";
+
     public static String SENSOR_FILE_NAME = "sensor";
     public static String TEXT_DETECTION_FILE_NAME = "textDetection";
+
+    public static String RESULT_PATH
+            =Environment.getExternalStorageDirectory()+"/分辨率实验/";
 
     //传感器类型常量
     public static final int TYPE_GYRO_ORI = 10001;
