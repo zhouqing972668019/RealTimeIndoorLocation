@@ -46,6 +46,7 @@ public class AutoSettingActivity extends AppCompatActivity {
         btnCollectionData = findViewById(R.id.btn_collection_data);
         ArrayAdapter<String> shopAdapter = new ArrayAdapter<>(this,android.R.layout.simple_spinner_dropdown_item,Constant.SHOP_NAMES);
         spShop.setAdapter(shopAdapter);
+        spShop.setSelection(1);
         //spShop.setSelection(FileUtil.getSPInt(AutoSettingActivity.this,"shopSelection"));
         spShop.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override

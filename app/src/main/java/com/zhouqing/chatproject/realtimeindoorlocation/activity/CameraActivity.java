@@ -67,7 +67,7 @@ public class CameraActivity extends AppCompatActivity {
     private MyReceiver receiver=null;
     private IntentFilter filter = null;
 
-    private TextView tvMagAccOri;
+    //private TextView tvMagAccOri;
     //private TextView tvGyroOri;
     private TextView tvOri;
     private TextView tvPOINum;
@@ -89,9 +89,9 @@ public class CameraActivity extends AppCompatActivity {
                 tvOri.setText(d.format(angle) + "");
             }
             //tvGyroOri.setText(d.format(gyroAngle) + "");
-            if(accMagAngle != null){
-                tvMagAccOri.setText(d.format(accMagAngle) + "");
-            }
+//            if(accMagAngle != null){
+//                tvMagAccOri.setText(d.format(accMagAngle) + "");
+//            }
             if(POINum != null && POINum != 0){
                 tvPOINum.setText(POINum+"");
             }
@@ -106,7 +106,7 @@ public class CameraActivity extends AppCompatActivity {
 
         tvOri = findViewById(R.id.tv_ori);
         //tvGyroOri = findViewById(R.id.tv_gyro_ori);
-        tvMagAccOri = findViewById(R.id.tv_mag_acc_ori);
+        //tvMagAccOri = findViewById(R.id.tv_mag_acc_ori);
         tvPOINum = findViewById(R.id.tv_poi_num);
         //选择文件夹，直接定位
         spFolder = findViewById(R.id.sp_folder);

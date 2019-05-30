@@ -190,7 +190,7 @@ public class TextRecognitionProcessor {
 			//文字中心与屏幕中央基本重合
 			if(Math.abs(centerDis) < 10d){
 				detectText.pos = 0;
-				String textDetectionInfo = timeStamp+" "+left+" "+top+" "+right+" "+bottom+" "+content+" "+resultPOIName;
+				String textDetectionInfo = timeStamp+","+left+","+top+","+right+","+bottom+","+content+","+resultPOIName;
 				textDetectionInfoAll.add(textDetectionInfo);
 				//将已识别的POI放入哈希表
 				POISet.add(resultPOIName);

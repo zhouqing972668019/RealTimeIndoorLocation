@@ -35,6 +35,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
+        android:visibility="gone"
         android:text="Localization"/>
 
     <LinearLayout
@@ -42,65 +43,18 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
-        android:layout_margin="5dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="18dp"
         android:orientation="horizontal">
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="#000000"
             android:textSize="15sp"
-            android:text="ori: "/>
+            android:text="line sight: "/>
         <TextView
             android:id="@+id/tv_ori"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="#000000"
-            android:textSize="15sp"
-            />
-    </LinearLayout>
-    <LinearLayout
-        android:id="@+id/ll_gyro_ori"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
-        android:layout_marginTop="15dp"
-        android:layout_alignTop="@+id/ll_ori"
-        android:orientation="horizontal"
-        android:visibility="gone">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="#000000"
-            android:textSize="15sp"
-            android:text="gyro: "/>
-        <TextView
-            android:id="@+id/tv_gyro_ori"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="#000000"
-            android:textSize="15sp"
-            />
-    </LinearLayout>
-    <LinearLayout
-        android:id="@+id/ll_mag_acc_ori"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
-        android:layout_marginTop="15dp"
-        android:layout_alignTop="@id/ll_gyro_ori"
-        android:orientation="horizontal">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="#000000"
-            android:textSize="15sp"
-            android:text="mag acc: "/>
-        <TextView
-            android:id="@+id/tv_mag_acc_ori"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="#000000"
@@ -115,7 +69,7 @@
         android:layout_marginLeft="5dp"
         android:layout_marginRight="5dp"
         android:layout_marginTop="15dp"
-        android:layout_alignTop="@id/ll_mag_acc_ori"
+        android:layout_alignTop="@id/ll_ori"
         android:orientation="horizontal">
         <TextView
             android:layout_width="wrap_content"
@@ -129,6 +83,7 @@
             android:layout_height="wrap_content"
             android:textColor="#000000"
             android:textSize="15sp"
+            android:text="0"
             />
     </LinearLayout>
     <LinearLayout
@@ -139,7 +94,8 @@
         android:layout_alignParentLeft="true"
         android:layout_marginLeft="5dp"
         android:layout_marginRight="5dp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:visibility="gone">
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

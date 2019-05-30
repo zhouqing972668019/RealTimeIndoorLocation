@@ -433,7 +433,7 @@ public class LocationInfoUtil {
     //获取文字识别信息--只考虑出现一次的情况(实时版本)
     public static void getTextDetectionInfo(List<String> textDetectionList, Map<String, TextDetectionAndPoi> textDetectionInfoMap) {
         for (String textDetection : textDetectionList) {
-            String[] elements = textDetection.split(" ");
+            String[] elements = textDetection.split(",");
             if (elements.length != 7) {
                 continue;
             }

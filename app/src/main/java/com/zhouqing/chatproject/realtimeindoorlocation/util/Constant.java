@@ -136,7 +136,7 @@ public class Constant {
         double areaTop = Double.MAX_VALUE;
         double areaBottom = Double.MIN_VALUE;
         for(String textDetectionInfo:textDetectionInfoList){
-            String[] elements = textDetectionInfo.split(" ");
+            String[] elements = textDetectionInfo.split(",");
             double left = Double.parseDouble(elements[1]);
             double top = Double.parseDouble(elements[2]);
             double right = Double.parseDouble(elements[3]);
