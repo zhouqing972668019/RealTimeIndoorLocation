@@ -1,6 +1,7 @@
 package com.zhouqing.chatproject.realtimeindoorlocation.activity;
 
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -67,6 +68,17 @@ public class AutoSettingActivity extends AppCompatActivity {
             }
         });
         //showFloorPlanInfo();
+
+        //第一个activity中创建图片资源
+        if(Constant.rightBitmap == null){
+            Constant.rightBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.right_arrow, null);
+        }
+        if(Constant.leftBitmap == null){
+            Constant.leftBitmap = BitmapFactory.decodeResource(getResources(),R.drawable.left_arrow,null);
+        }
+        if(Constant.centerBitmap == null){
+            Constant.centerBitmap = BitmapFactory.decodeResource(getResources(),R.drawable.center,null);
+        }
     }
 
     public void startLocaion(){

@@ -405,8 +405,8 @@ public class SensorRecordService extends Service implements SensorEventListener 
             Intent intent=new Intent();
             intent.putExtra("angle", (double)ori[0]);
             intent.putExtra("accMagAngle", accMagOrientation[0]*180/Math.PI);
-            intent.putExtra("gyroAngle", gyroOrientation[0]*180/Math.PI);
-            intent.setAction("com.zhouqing.chatproject.realtimeindoorlocation.service.SensorRecordService");
+            //intent.putExtra("gyroAngle", gyroOrientation[0]*180/Math.PI);
+            intent.setAction(Constant.BROADCASTRECEIVER_NAME);
             sendBroadcast(intent);
         }
     }

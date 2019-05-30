@@ -13,6 +13,8 @@
 // limitations under the License.
 package com.zhouqing.chatproject.realtimeindoorlocation.text_detection;
 
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.RectF;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -28,12 +30,22 @@ import com.google.firebase.ml.vision.text.FirebaseVisionText;
 import com.google.firebase.ml.vision.text.FirebaseVisionTextRecognizer;
 import com.zhouqing.chatproject.realtimeindoorlocation.model.FrameMetadata;
 import com.zhouqing.chatproject.realtimeindoorlocation.model.GraphicOverlay;
+import com.zhouqing.chatproject.realtimeindoorlocation.model.StandardLocationInfo;
+import com.zhouqing.chatproject.realtimeindoorlocation.model.Text;
+import com.zhouqing.chatproject.realtimeindoorlocation.model.TextDetectionInfo;
+import com.zhouqing.chatproject.realtimeindoorlocation.util.Constant;
+import com.zhouqing.chatproject.realtimeindoorlocation.util.LocationInfoUtil;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.zhouqing.chatproject.realtimeindoorlocation.util.LocationInfoUtil.SIMILARITY_THRESHOLD;
 
 //import com.ajeetkumar.textdetectionusingmlkit.others.VisionProcessorBase;
 
@@ -53,9 +65,19 @@ public class TextRecognitionProcessor {
 	//文字识别结果
 	private List<String> textDetectionInfoAll = new ArrayList<>();
 
-	public TextRecognitionProcessor() {
+	//已识别的POI列表
+	private Set<String> POISet = new HashSet<>();
+
+	//上下文
+	private Context mContext;
+
+	public TextRecognitionProcessor(Map<String, StandardLocationInfo> floorPlanMap,Context context) {
 		detector = FirebaseVision.getInstance().getOnDeviceTextRecognizer();
+		this.floorPlanMap = floorPlanMap;
+		mContext = context;
 	}
+
+	public Map<String, StandardLocationInfo> floorPlanMap;
 
 
 
@@ -101,6 +123,8 @@ public class TextRecognitionProcessor {
 		System.out.println("frameData:"+frameMetadata.getWidth()+","+frameMetadata.getHeight()+","+frameMetadata.getRotation());
 		graphicOverlay.clear();
 
+		List<String> textDetectionList = new ArrayList<>();//当前这一帧画面中出现的文本列表
+
 		List<FirebaseVisionText.TextBlock> blocks = results.getTextBlocks();
 
 		for (int i = 0; i < blocks.size(); i++) {
@@ -113,15 +137,83 @@ public class TextRecognitionProcessor {
 					FirebaseVisionText.Element text = elements.get(k);
 					RectF rect = new RectF(text.getBoundingBox());
 
-					GraphicOverlay.Graphic textGraphic = new TextGraphic(graphicOverlay, elements.get(k));
-					graphicOverlay.add(textGraphic);
-
 					String textDetectionInfo = timeStamp+" "+rect.left+" "+rect.top+" "+rect.right+" "+rect.bottom+" "+text.getText();
 					Log.d(TAG, textDetectionInfo);
-					textDetectionInfoAll.add(textDetectionInfo);
+					textDetectionList.add(textDetectionInfo);
+
 				}
 			}
 		}
+		int previewWidth = frameMetadata.getHeight();
+
+		//对当前帧中的文本进行实时处理
+		List<TextDetectionInfo> resultList = new ArrayList<>();//对临近文本进行合并
+		LocationInfoUtil.processTextDetectionInfo(textDetectionList,resultList);
+		TextDetectionInfo resultTextDetectionInfo = null;
+		double maxArea = Integer.MIN_VALUE;
+		String resultPOIName = "";
+		for(TextDetectionInfo textDetectionInfo:resultList){
+			String POIName = "";
+			int similarity = Integer.MIN_VALUE;
+			//判断当前文字识别信息是否与某个POI名称相同(找出相似度最高的POI)
+			for(String floorPlanPOIName:floorPlanMap.keySet()){
+				if(Constant.isContainChinese(floorPlanPOIName)){
+					continue;
+				}
+				String modifyFloorPlanPOIName = Constant.removeIllegalAlphabet(floorPlanPOIName);
+				String modifyTextDetection = Constant.removeIllegalAlphabet(textDetectionInfo.textContent);
+				int value = Constant.calculateStringDistance(modifyFloorPlanPOIName,modifyTextDetection);
+				if(value > similarity){
+					similarity = value;
+					POIName = floorPlanPOIName;
+				}
+			}
+			if(similarity > SIMILARITY_THRESHOLD) {
+				double area = LocationInfoUtil.calcalateArea(textDetectionInfo);
+				if(area > maxArea){
+					maxArea = area;
+					resultTextDetectionInfo = textDetectionInfo;
+					resultPOIName = POIName;
+				}
+			}
+		}
+		if(resultTextDetectionInfo != null){
+			double left = resultTextDetectionInfo.left;
+			double right = resultTextDetectionInfo.right;
+			double top = resultTextDetectionInfo.top;
+			double bottom = resultTextDetectionInfo.bottom;
+			String content = resultTextDetectionInfo.textContent;
+			double centerDis = LocationInfoUtil.compareCenterDis(previewWidth, left, right);
+
+
+			Text detectText = new Text((float) left,(float)top,(float)right,(float)bottom,content);
+			//文字中心与屏幕中央基本重合
+			if(Math.abs(centerDis) < 10d){
+				detectText.pos = 0;
+				String textDetectionInfo = timeStamp+" "+left+" "+top+" "+right+" "+bottom+" "+content+" "+resultPOIName;
+				textDetectionInfoAll.add(textDetectionInfo);
+				//将已识别的POI放入哈希表
+				POISet.add(resultPOIName);
+				//发送广播
+				Intent intent=new Intent();
+				intent.putExtra("POINum", POISet.size());
+				intent.setAction(Constant.BROADCASTRECEIVER_NAME);
+				mContext.sendBroadcast(intent);
+			}
+			//文字中心在屏幕中央左侧
+			else if(centerDis < 0){
+				detectText.pos = -1;
+			}
+			//文字中心在屏幕中央右侧
+			else{
+				detectText.pos = 1;
+			}
+			GraphicOverlay.Graphic textGraphic = new TextGraphic(graphicOverlay, detectText);
+			graphicOverlay.add(textGraphic);
+		}
+
+
+
 	}
 
 	protected void onFailure(@NonNull Exception e) {

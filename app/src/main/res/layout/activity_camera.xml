@@ -6,8 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".activity.CameraActivity">
 
-
-
     <com.zhouqing.chatproject.realtimeindoorlocation.camera.CameraSourcePreview
         android:id="@+id/camera_source_preview"
         android:layout_width="match_parent"
@@ -33,7 +31,6 @@
         android:text="Start"/>
 
     <Button
-        android:visibility="gone"
         android:id="@+id/btn_localization"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -70,7 +67,8 @@
         android:layout_marginRight="5dp"
         android:layout_marginTop="15dp"
         android:layout_alignTop="@+id/ll_ori"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:visibility="gone">
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -110,7 +108,30 @@
             />
     </LinearLayout>
     <LinearLayout
-        android:visibility="gone"
+        android:id="@+id/ll_poi_num"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="15dp"
+        android:layout_alignTop="@id/ll_mag_acc_ori"
+        android:orientation="horizontal">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#000000"
+            android:textSize="15sp"
+            android:text="poi num: "/>
+        <TextView
+            android:id="@+id/tv_poi_num"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#000000"
+            android:textSize="15sp"
+            />
+    </LinearLayout>
+    <LinearLayout
         android:id="@+id/ll_folder"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -133,6 +154,12 @@
             />
     </LinearLayout>
 
+    <View
+        android:layout_height="match_parent"
+        android:layout_width="4px"
+        android:layout_centerInParent="true"
+        android:background="#ffffff"
+        />
 
 
 
